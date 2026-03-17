@@ -220,6 +220,14 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
 .btn-danger { padding: 8px 20px; border: none; border-radius: 7px; background: #ef4444; font-size: 14px; font-weight: 600; color: #fff; cursor: pointer; }
 .btn-danger:hover { background: #dc2626; }
 
+/* ADD PROJECT BUTTON */
+.btn-add-project {
+  background: #3b82f6; color: #fff; border: none; border-radius: 7px;
+  padding: 9px 12px; font-size: 16px; font-weight: 600; cursor: pointer;
+  transition: background .15s;
+}
+.btn-add-project:hover { background: #2563eb; }
+
 /* TOAST */
 .toast { position: fixed; bottom: 24px; right: 24px; background: #1f2937; color: #fff; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,.2); z-index: 900; opacity: 0; transform: translateY(8px); transition: all .25s; pointer-events: none; max-width: 320px; }
 .toast.show { opacity: 1; transform: translateY(0); }
@@ -389,23 +397,27 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
       </div>
       <div class="form-group">
         <label>Nama Project <span style="color:#ef4444">*</span></label>
-        <select class="form-select" id="f-project">
-          <option value="">Pilih Project</option>
-          <option>ZMivins</option>
-          <option>Ginza Dental</option>
-          <option>Siiri Geomancy</option>
-          <option>Entrust</option>
-          <option>UMW Equipment</option>
-          <option>OP Academy</option>
-          <option>Novena ENT</option>
-          <option>Astique Clinic</option>
-          <option>GFA Global</option>
-          <option>Comnet System</option>
-          <option>Cheap Website Designer</option>
-          <option>Crane Spares</option>
-          <option>East Ocean</option>
-          <option>Evermarch</option>
-        </select>
+        <div style="display:flex;gap:8px;align-items:stretch">
+          <select class="form-select" id="f-project" style="flex:1">
+            <option value="">Pilih Project</option>
+            <option>ZMivins</option>
+            <option>Ginza Dental</option>
+            <option>Siiri Geomancy</option>
+            <option>Entrust</option>
+            <option>UMW Equipment</option>
+            <option>OP Academy</option>
+            <option>Novena ENT</option>
+            <option>Astique Clinic</option>
+            <option>GFA Global</option>
+            <option>Comnet System</option>
+            <option>Cheap Website Designer</option>
+            <option>Crane Spares</option>
+            <option>East Ocean</option>
+            <option>Evermarch</option>
+            <option style="color:#3b82f6;font-weight:600">— + Tambah Project Baru —</option>
+          </select>
+          <button type="button" class="btn-add-project" id="btn-add-project" title="Tambah project baru" style="display:none">＋</button>
+        </div>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -465,6 +477,29 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
   </div>
 </div>
 
+<!-- ADD NEW PROJECT MODAL -->
+<div class="modal-overlay" id="add-project-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <span class="modal-title">Tambah Project Baru</span>
+      <button class="modal-close" onclick="closeAddProjectModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nama Project <span style="color:#ef4444">*</span></label>
+        <input class="form-input" id="new-project-name" placeholder="Contoh: PT Maju Jaya" />
+      </div>
+      <div style="font-size:12px;color:#6b7280;margin-top:12px">
+        Project baru akan ditambahkan ke daftar dan otomatis dipilih.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeAddProjectModal()">Batal</button>
+      <button class="btn-save" onclick="saveNewProject()">Tambah Project</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -500,6 +535,7 @@ function doLogin() {
   document.getElementById('user-avatar').textContent = u[0].toUpperCase();
 
   applyRoleUI();
+  loadCustomProjects();
   renderAll();
 }
 
@@ -523,6 +559,9 @@ function applyRoleUI() {
   // Bulk action buttons
   document.getElementById('bulk-delete-btn').style.display  = admin ? 'flex' : 'none';
   document.getElementById('check-all').style.display        = admin ? 'inline-block' : 'none';
+  // Project management button
+  const btnAddProject = document.getElementById('btn-add-project');
+  if (btnAddProject) btnAddProject.style.display = admin ? 'flex' : 'none';
 }
 
 // ── DATA ──────────────────────────────────────────────────────────────────────
@@ -793,6 +832,71 @@ function confirmDelete() {
   showToast(`"${a.title}" dihapus.`, 'success');
 }
 
+// ── PROJECT MANAGEMENT ────────────────────────────────────────────────────────
+const DEFAULT_PROJECTS = ['ZMivins', 'Ginza Dental', 'Siiri Geomancy', 'Entrust', 'UMW Equipment', 'OP Academy', 'Novena ENT', 'Astique Clinic', 'GFA Global', 'Comnet System', 'Cheap Website Designer', 'Crane Spares', 'East Ocean', 'Evermarch'];
+let customProjects = [];
+
+function loadCustomProjects() {
+  const stored = localStorage.getItem('custom_projects');
+  customProjects = stored ? JSON.parse(stored) : [];
+  updateProjectDropdowns();
+}
+
+function saveCustomProjects() {
+  localStorage.setItem('custom_projects', JSON.stringify(customProjects));
+}
+
+function updateProjectDropdowns() {
+  const allProjects = [...DEFAULT_PROJECTS, ...customProjects];
+  const selects = [document.getElementById('f-project')];
+  selects.forEach(select => {
+    const current = select.value;
+    const options = select.querySelectorAll('option');
+    options.forEach(opt => {
+      if (opt.textContent !== '— + Tambah Project Baru —' && !DEFAULT_PROJECTS.includes(opt.textContent)) opt.remove();
+    });
+    customProjects.forEach(proj => {
+      const opt = document.createElement('option');
+      opt.textContent = proj;
+      select.insertBefore(opt, select.querySelector('option[style*="color:#3b82f6"]'));
+    });
+    select.value = current;
+  });
+}
+
+function handleProjectChange() {
+  const select = document.getElementById('f-project');
+  if (select.value === '— + Tambah Project Baru —') {
+    select.value = '';
+    if (isAdmin()) openAddProjectModal();
+    else showToast('Hanya admin yang bisa menambah project.', 'error');
+  }
+}
+
+function openAddProjectModal() {
+  document.getElementById('new-project-name').value = '';
+  document.getElementById('add-project-modal').classList.add('open');
+  setTimeout(() => document.getElementById('new-project-name').focus(), 100);
+}
+
+function closeAddProjectModal() {
+  document.getElementById('add-project-modal').classList.remove('open');
+}
+
+function saveNewProject() {
+  const name = document.getElementById('new-project-name').value.trim();
+  if (!name) { showToast('Nama project tidak boleh kosong.', 'error'); return; }
+  if (DEFAULT_PROJECTS.includes(name)) { showToast('Project ini sudah ada di daftar default.', 'error'); return; }
+  if (customProjects.includes(name)) { showToast('Project ini sudah ditambahkan sebelumnya.', 'error'); return; }
+  customProjects.push(name);
+  customProjects.sort();
+  saveCustomProjects();
+  updateProjectDropdowns();
+  document.getElementById('f-project').value = name;
+  closeAddProjectModal();
+  showToast(`Project "${name}" berhasil ditambahkan!`, 'success');
+}
+
 // ── DROPDOWN ──────────────────────────────────────────────────────────────────
 function toggleDropdown(id) {
   document.querySelectorAll('.dropdown-menu').forEach(d => { if (d.id !== `dd-${id}`) d.classList.remove('open'); });
@@ -835,15 +939,19 @@ function shakeInput(id) {
 
 // ── KEYBOARD ─────────────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModal(); closeDeleteModal(); closeBulkDeleteModal(); }
+  if (e.key === 'Escape') { closeModal(); closeDeleteModal(); closeBulkDeleteModal(); closeAddProjectModal(); }
   if (e.key === 'Enter') {
     if (document.getElementById('login-screen').offsetParent !== null) { doLogin(); return; }
     if (document.getElementById('article-modal').classList.contains('open') && document.activeElement.tagName !== 'SELECT') saveArticle();
+    if (document.getElementById('add-project-modal').classList.contains('open')) saveNewProject();
   }
 });
 document.getElementById('article-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeModal(); });
 document.getElementById('delete-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeDeleteModal(); });
 document.getElementById('bulk-delete-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeBulkDeleteModal(); });
+document.getElementById('add-project-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeAddProjectModal(); });
+document.getElementById('f-project').addEventListener('change', handleProjectChange);
+document.getElementById('new-project-name').addEventListener('keydown', e => { if (e.key==='Enter') saveNewProject(); });
 </script>
 </body>
 </html>
