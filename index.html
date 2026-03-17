@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Artikel Workflow Dashboard</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f3f4f6; color: #1f2937; min-height: 100vh; }
+
+/* ── LOGIN SCREEN ── */
+.login-screen {
+  position: fixed; inset: 0; background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+  transition: opacity .3s;
+}
+.login-screen.hidden { opacity: 0; pointer-events: none; }
+.login-box {
+  background: #fff; border-radius: 16px; padding: 40px 36px;
+  width: 100%; max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+.login-logo { text-align: center; margin-bottom: 24px; }
+.login-logo-icon {
+  width: 52px; height: 52px; border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6, #7c3aed);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 24px; margin-bottom: 12px;
+}
+.login-logo h2 { font-size: 20px; font-weight: 700; color: #111827; }
+.login-logo p { font-size: 13px; color: #6b7280; margin-top: 4px; }
+.login-form { display: flex; flex-direction: column; gap: 14px; }
+.login-form label { font-size: 13px; font-weight: 600; color: #374151; }
+.login-form input {
+  width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb;
+  border-radius: 8px; font-size: 14px; outline: none; margin-top: 5px;
+}
+.login-form input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
+.login-btn {
+  width: 100%; padding: 11px; background: #3b82f6; color: #fff;
+  border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+  cursor: pointer; margin-top: 4px; transition: background .15s;
+}
+.login-btn:hover { background: #2563eb; }
+.login-error { font-size: 13px; color: #ef4444; text-align: center; min-height: 18px; }
+.login-hint {
+  margin-top: 16px; padding: 12px; background: #f9fafb; border-radius: 8px;
+  font-size: 12px; color: #6b7280; line-height: 1.8;
+}
+.login-hint strong { color: #374151; }
+
+/* ── HEADER ── */
+.header {
+  background: #fff; border-bottom: 1px solid #e5e7eb;
+  padding: 0 32px; height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+.header-title { font-size: 20px; font-weight: 400; color: #111827; }
+.header-title span { font-weight: 700; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.role-badge {
+  font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+}
+.role-badge.admin   { background: #fef3c7; color: #92400e; }
+.role-badge.viewer  { background: #e0f2fe; color: #0369a1; }
+.admin-btn {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  border: none; background: none; font-size: 14px; font-weight: 500; color: #374151;
+}
+.admin-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 13px; font-weight: 700;
+}
+.logout-btn {
+  font-size: 12px; color: #6b7280; background: none; border: 1px solid #e5e7eb;
+  border-radius: 6px; padding: 4px 10px; cursor: pointer;
+}
+.logout-btn:hover { background: #f9fafb; color: #374151; }
+
+/* ── MAIN ── */
+.main { padding: 28px 32px; max-width: 1280px; margin: 0 auto; }
+
+/* ── STAT CARDS ── */
+.stat-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card { border-radius: 10px; padding: 20px 20px 14px; color: #fff; display: flex; flex-direction: column; gap: 6px; }
+.stat-card.orange { background: #f97316; }
+.stat-card.blue   { background: #3b82f6; }
+.stat-card.green  { background: #22c55e; }
+.stat-card.purple { background: #a855f7; }
+.stat-card.teal   { background: #14b8a6; }
+.stat-label  { font-size: 14px; font-weight: 500; opacity: .92; }
+.stat-number { font-size: 40px; font-weight: 700; line-height: 1; }
+.dl-btn-wrap { margin-top: 10px; }
+.dl-btn { display: inline-flex; align-items: center; background: #fff; border-radius: 6px; overflow: hidden; width: 100%; }
+.dl-btn-main { display: flex; align-items: center; gap: 6px; padding: 7px 14px; font-size: 13px; font-weight: 500; color: #374151; background: #fff; border: none; cursor: pointer; flex: 1; justify-content: center; border-right: 1px solid #e5e7eb; }
+.dl-btn-arrow { padding: 7px 10px; background: #fff; border: none; cursor: pointer; color: #9ca3af; }
+.dl-btn-main:hover, .dl-btn-arrow:hover { background: #f9fafb; }
+
+/* ── PANELS ── */
+.panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.panel { background: #fff; border-radius: 10px; padding: 18px 20px; border: 1px solid #e5e7eb; }
+.panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.panel-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #111827; }
+.panel-dl-btn { font-size: 12px; font-weight: 500; color: #374151; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.panel-dl-btn:hover { background: #f9fafb; }
+.panel-item { display: flex; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid #f3f4f6; font-size: 14px; color: #374151; }
+.panel-item:last-child { border-bottom: none; }
+.panel-empty { font-size: 13px; color: #9ca3af; padding: 8px 0; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot-orange { background: #f97316; }
+.dot-blue   { background: #3b82f6; }
+
+/* ── TABLE ── */
+.table-card { background: #fff; border-radius: 10px; border: 1px solid #e5e7eb; overflow: hidden; }
+.table-card-header { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f3f4f6; }
+.table-card-header h2 { font-size: 16px; font-weight: 600; color: #111827; }
+.add-btn { display: flex; align-items: center; gap: 7px; background: #3b82f6; color: #fff; border: none; border-radius: 7px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; }
+.add-btn:hover { background: #2563eb; }
+
+/* toolbar */
+.table-toolbar { display: flex; align-items: center; gap: 10px; padding: 12px 20px; border-bottom: 1px solid #f3f4f6; flex-wrap: wrap; }
+.search-wrap { position: relative; flex: 1; min-width: 180px; }
+.search-wrap input { width: 100%; padding: 7px 12px 7px 34px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; outline: none; }
+.search-wrap input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.1); }
+.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; color: #9ca3af; pointer-events: none; }
+.filter-select { padding: 7px 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; color: #374151; outline: none; cursor: pointer; background: #fff; }
+.filter-select:focus { border-color: #3b82f6; }
+
+/* BULK ACTION BAR */
+.bulk-bar {
+  display: none; align-items: center; gap: 12px;
+  padding: 10px 20px; background: #eff6ff; border-bottom: 1px solid #bfdbfe;
+  flex-wrap: wrap;
+}
+.bulk-bar.visible { display: flex; }
+.bulk-count { font-size: 13px; font-weight: 600; color: #1d4ed8; }
+.bulk-delete-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: #ef4444; color: #fff; border: none; border-radius: 6px;
+  padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.bulk-delete-btn:hover { background: #dc2626; }
+.bulk-cancel-btn {
+  background: none; border: 1px solid #bfdbfe; border-radius: 6px;
+  padding: 6px 12px; font-size: 13px; color: #374151; cursor: pointer;
+}
+.bulk-cancel-btn:hover { background: #dbeafe; }
+.bulk-review-btn {
+  background: #3b82f6; color: #fff; border: none; border-radius: 6px;
+  padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.bulk-review-btn:hover { background: #2563eb; }
+
+table { width: 100%; border-collapse: collapse; }
+thead th { text-align: left; padding: 11px 16px; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; background: #f9fafb; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+thead th.check-col { width: 44px; padding: 11px 12px 11px 20px; }
+tbody tr { border-bottom: 1px solid #f3f4f6; transition: background .1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #fafafa; }
+tbody tr.selected-row { background: #eff6ff; }
+tbody tr.selected-row:hover { background: #dbeafe; }
+tbody td { padding: 13px 16px; font-size: 14px; color: #374151; vertical-align: middle; }
+tbody td.check-col { padding: 13px 12px 13px 20px; }
+
+/* checkbox */
+input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: #3b82f6; border-radius: 4px; }
+
+.article-title { font-weight: 500; color: #111827; }
+.url-link { color: #3b82f6; text-decoration: none; font-size: 13px; }
+.url-link:hover { text-decoration: underline; }
+
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+.badge-blue-outline   { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+.badge-orange-outline { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+.badge-green-solid    { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+.badge-gray           { background: #f3f4f6; color: #6b7280; }
+.badge-sky            { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+.badge-published      { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.dash-text            { color: #9ca3af; }
+
+/* action dropdown */
+.action-wrap { position: relative; }
+.action-btn { background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 18px; padding: 2px 8px; border-radius: 4px; }
+.action-btn:hover { background: #f3f4f6; color: #374151; }
+.action-btn:disabled { opacity: .3; cursor: not-allowed; }
+.dropdown-menu { position: absolute; right: 0; top: calc(100% + 4px); background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.1); min-width: 160px; z-index: 200; overflow: hidden; display: none; }
+.dropdown-menu.open { display: block; }
+.dropdown-item { display: flex; align-items: center; gap: 8px; padding: 9px 14px; font-size: 13px; color: #374151; cursor: pointer; border: none; background: none; width: 100%; text-align: left; }
+.dropdown-item:hover { background: #f3f4f6; }
+.dropdown-item.danger { color: #ef4444; }
+.dropdown-item.danger:hover { background: #fef2f2; }
+.dropdown-item:disabled, .dropdown-item[data-admin-only].viewer-mode { opacity: .4; cursor: not-allowed; pointer-events: none; }
+
+/* PAGINATION */
+.pagination { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 16px; border-top: 1px solid #f3f4f6; }
+.page-btn { min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; font-size: 13px; font-weight: 500; color: #374151; cursor: pointer; padding: 0 10px; }
+.page-btn:hover:not(.disabled):not(.active) { background: #f3f4f6; }
+.page-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+.page-btn.disabled { color: #d1d5db; cursor: default; pointer-events: none; }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal { background: #fff; border-radius: 12px; width: 100%; max-width: 520px; box-shadow: 0 20px 40px rgba(0,0,0,.15); transform: translateY(8px); transition: transform .2s; }
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 16px; border-bottom: 1px solid #f3f4f6; }
+.modal-title { font-size: 16px; font-weight: 700; color: #111827; }
+.modal-close { background: none; border: none; font-size: 20px; color: #9ca3af; cursor: pointer; }
+.modal-close:hover { color: #374151; }
+.modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+label { font-size: 13px; font-weight: 600; color: #374151; }
+.form-input, .form-select { width: 100%; padding: 9px 12px; border: 1px solid #e5e7eb; border-radius: 7px; font-size: 14px; color: #111827; outline: none; background: #fff; }
+.form-input:focus, .form-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.1); }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px 20px; border-top: 1px solid #f3f4f6; }
+.btn-cancel { padding: 8px 18px; border: 1px solid #e5e7eb; border-radius: 7px; background: #fff; font-size: 14px; font-weight: 500; color: #374151; cursor: pointer; }
+.btn-cancel:hover { background: #f9fafb; }
+.btn-save { padding: 8px 20px; border: none; border-radius: 7px; background: #3b82f6; font-size: 14px; font-weight: 600; color: #fff; cursor: pointer; }
+.btn-save:hover { background: #2563eb; }
+.btn-danger { padding: 8px 20px; border: none; border-radius: 7px; background: #ef4444; font-size: 14px; font-weight: 600; color: #fff; cursor: pointer; }
+.btn-danger:hover { background: #dc2626; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 24px; right: 24px; background: #1f2937; color: #fff; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,.2); z-index: 900; opacity: 0; transform: translateY(8px); transition: all .25s; pointer-events: none; max-width: 320px; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: #16a34a; }
+.toast.error   { background: #dc2626; }
+.toast.info    { background: #2563eb; }
+
+.empty-row td { text-align: center; padding: 48px; color: #9ca3af; font-size: 14px; }
+.viewer-lock-notice { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6b7280; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 5px 10px; }
+
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+@media (max-width: 900px) { .stat-grid { grid-template-columns: repeat(3,1fr); } .panel-grid { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .stat-grid { grid-template-columns: 1fr 1fr; } .main { padding: 16px; } .form-row { grid-template-columns: 1fr; } .header { padding: 0 16px; } }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN SCREEN ── -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">📝</div>
+      <h2>Artikel Workflow</h2>
+      <p>Masuk untuk mengakses dashboard</p>
+    </div>
+    <div class="login-form">
+      <div>
+        <label>Username</label>
+        <input type="text" id="login-user" placeholder="Masukkan username" autocomplete="username" />
+      </div>
+      <div>
+        <label>Password</label>
+        <input type="password" id="login-pass" placeholder="Masukkan password" autocomplete="current-password" />
+      </div>
+      <div class="login-error" id="login-error"></div>
+      <button class="login-btn" onclick="doLogin()">Masuk →</button>
+    </div>
+    <div class="login-hint">
+      <strong>Demo credentials:</strong><br>
+      👑 Admin &nbsp;— user: <code>admin</code> &nbsp;/ pass: <code>admin123</code><br>
+      👁 Viewer — user: <code>viewer</code> / pass: <code>viewer123</code>
+    </div>
+  </div>
+</div>
+
+<!-- ── HEADER ── -->
+<header class="header" id="app-header" style="display:none">
+  <h1 class="header-title"><span>Artikel Workflow</span> Dashboard</h1>
+  <div class="header-right">
+    <span class="role-badge" id="role-badge"></span>
+    <button class="admin-btn">
+      <div class="admin-avatar" id="user-avatar">A</div>
+      <span id="user-label">Admin</span>
+    </button>
+    <button class="logout-btn" onclick="doLogout()">Keluar</button>
+  </div>
+</header>
+
+<main class="main" id="app-main" style="display:none">
+
+  <!-- STAT CARDS -->
+  <div class="stat-grid">
+    <div class="stat-card orange">
+      <div class="stat-label">Belum Diperiksa</div>
+      <div class="stat-number" id="stat-belum">0</div>
+      <div class="dl-btn-wrap"><div class="dl-btn">
+        <button class="dl-btn-main" onclick="downloadCSV('Belum Diperiksa')">⬇ Download</button>
+        <button class="dl-btn-arrow">▾</button>
+      </div></div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">Sudah Diperiksa</div>
+      <div class="stat-number" id="stat-sudah">0</div>
+      <div class="dl-btn-wrap"><div class="dl-btn">
+        <button class="dl-btn-main" onclick="downloadCSV('Sudah Diperiksa')">⬇ Download</button>
+        <button class="dl-btn-arrow">▾</button>
+      </div></div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Approved</div>
+      <div class="stat-number" id="stat-approved">0</div>
+      <div class="dl-btn-wrap"><div class="dl-btn">
+        <button class="dl-btn-main" onclick="downloadCSV('Approved')">⬇ Download</button>
+        <button class="dl-btn-arrow">▾</button>
+      </div></div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">Task Dibuat</div>
+      <div class="stat-number" id="stat-task">0</div>
+      <div class="dl-btn-wrap"><div class="dl-btn">
+        <button class="dl-btn-main" onclick="downloadCSV('Task Dibuat')">⬇ Download</button>
+        <button class="dl-btn-arrow">▾</button>
+      </div></div>
+    </div>
+    <div class="stat-card teal">
+      <div class="stat-label">Published</div>
+      <div class="stat-number" id="stat-published">0</div>
+      <div class="dl-btn-wrap"><div class="dl-btn">
+        <button class="dl-btn-main" onclick="downloadCSV('Published')">⬇ Download</button>
+        <button class="dl-btn-arrow">▾</button>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- PANELS -->
+  <div class="panel-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title"><span>⚠️</span> Approved Tapi Belum Dibuat Task</div>
+        <button class="panel-dl-btn" onclick="downloadCSV('approved-no-task')">⬇ Download List</button>
+      </div>
+      <div id="panel-approved-notask"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title"><span style="color:#3b82f6">📋</span> Artikel Perlu Diperiksa</div>
+        <button class="panel-dl-btn" onclick="downloadCSV('need-review')">⬇ Download List</button>
+      </div>
+      <div id="panel-need-review"></div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <h2>Daftar Semua Artikel</h2>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="viewer-lock-notice" id="viewer-notice" style="display:none">🔒 Mode Viewer — hanya bisa melihat</div>
+        <button class="add-btn" id="add-btn" onclick="openAddModal()">＋ Tambah Artikel</button>
+      </div>
+    </div>
+
+    <!-- SEARCH / FILTER -->
+    <div class="table-toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Cari judul atau URL..." oninput="onFilterChange()" />
+      </div>
+      <select class="filter-select" id="filter-review" onchange="onFilterChange()">
+        <option value="">Semua Review</option>
+        <option>Belum Diperiksa</option>
+        <option>Sudah Diperiksa</option>
+      </select>
+      <select class="filter-select" id="filter-approval" onchange="onFilterChange()">
+        <option value="">Semua Approval</option>
+        <option>Approved</option>
+        <option>Belum Dibuat</option>
+      </select>
+      <select class="filter-select" id="filter-status" onchange="onFilterChange()">
+        <option value="">Semua Status</option>
+        <option>Draft</option>
+        <option>Menunggu Task</option>
+        <option>Published</option>
+      </select>
+    </div>
+
+    <!-- BULK ACTION BAR -->
+    <div class="bulk-bar" id="bulk-bar">
+      <span class="bulk-count" id="bulk-count">0 artikel dipilih</span>
+      <button class="bulk-review-btn" id="bulk-review-btn" onclick="bulkMarkReview()">👁 Tandai Diperiksa</button>
+      <button class="bulk-delete-btn" id="bulk-delete-btn" onclick="openBulkDeleteModal()">🗑 Hapus Terpilih</button>
+      <button class="bulk-cancel-btn" onclick="clearSelection()">✕ Batal</button>
+    </div>
+
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th class="check-col"><input type="checkbox" id="check-all" onchange="toggleSelectAll(this.checked)" /></th>
+            <th>Judul Artikel</th>
+            <th>URL Draft</th>
+            <th>Review</th>
+            <th>Approval</th>
+            <th>Task</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="article-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+</main>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="article-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Tambah Artikel Baru</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-id" />
+      <div class="form-group">
+        <label>Judul Artikel <span style="color:#ef4444">*</span></label>
+        <input class="form-input" id="f-title" placeholder="Contoh: Panduan SEO untuk Pemula" />
+      </div>
+      <div class="form-group">
+        <label>URL Draft <span style="color:#ef4444">*</span></label>
+        <input class="form-input" id="f-url" placeholder="Contoh: example.com/seo-pemula" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Review</label>
+          <select class="form-select" id="f-review">
+            <option>Belum Diperiksa</option>
+            <option>Sudah Diperiksa</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Approval</label>
+          <select class="form-select" id="f-approval">
+            <option value="">— Belum Dibuat —</option>
+            <option>Approved</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Task</label>
+          <select class="form-select" id="f-task">
+            <option value="">— Belum Dibuat —</option>
+            <option>Tugas Dibuat</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select class="form-select" id="f-status">
+            <option>Draft</option>
+            <option>Menunggu Task</option>
+            <option>Published</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Batal</button>
+      <button class="btn-save" onclick="saveArticle()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE SINGLE MODAL -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <span class="modal-title">Hapus Artikel</span>
+      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:#374151;line-height:1.7">Apakah kamu yakin ingin menghapus <strong id="delete-name"></strong>? Tindakan ini tidak bisa dibatalkan.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeDeleteModal()">Batal</button>
+      <button class="btn-danger" onclick="confirmDelete()">Hapus</button>
+    </div>
+  </div>
+</div>
+
+<!-- BULK DELETE CONFIRM MODAL -->
+<div class="modal-overlay" id="bulk-delete-modal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <span class="modal-title">Hapus Artikel Terpilih</span>
+      <button class="modal-close" onclick="closeBulkDeleteModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:#374151;line-height:1.7">Kamu akan menghapus <strong id="bulk-delete-count"></strong>. Tindakan ini tidak bisa dibatalkan.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeBulkDeleteModal()">Batal</button>
+      <button class="btn-danger" onclick="confirmBulkDelete()">Hapus Semua</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── USERS ────────────────────────────────────────────────────────────────────
+const USERS = {
+  admin:  { password: 'admin123',  role: 'admin',  label: 'Admin' },
+  viewer: { password: 'viewer123', role: 'viewer', label: 'Viewer' },
+};
+
+let currentUser = null; // { username, role, label }
+
+function doLogin() {
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  if (!u || !p) { err.textContent = 'Username dan password wajib diisi.'; return; }
+  const record = USERS[u];
+  if (!record || record.password !== p) {
+    err.textContent = 'Username atau password salah.';
+    document.getElementById('login-pass').style.borderColor = '#ef4444';
+    return;
+  }
+  currentUser = { username: u, role: record.role, label: record.label };
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app-header').style.display = 'flex';
+  document.getElementById('app-main').style.display = 'block';
+
+  // Update header
+  const badge = document.getElementById('role-badge');
+  badge.textContent = record.role === 'admin' ? '👑 Admin' : '👁 Viewer';
+  badge.className = 'role-badge ' + record.role;
+  document.getElementById('user-label').textContent = record.label;
+  document.getElementById('user-avatar').textContent = u[0].toUpperCase();
+
+  applyRoleUI();
+  renderAll();
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('app-header').style.display = 'none';
+  document.getElementById('app-main').style.display = 'none';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').textContent = '';
+  clearSelection();
+}
+
+function isAdmin() { return currentUser && currentUser.role === 'admin'; }
+
+function applyRoleUI() {
+  const admin = isAdmin();
+  document.getElementById('add-btn').style.display     = admin ? 'flex' : 'none';
+  document.getElementById('viewer-notice').style.display = admin ? 'none' : 'flex';
+  // Bulk action buttons
+  document.getElementById('bulk-delete-btn').style.display  = admin ? 'flex' : 'none';
+  document.getElementById('bulk-review-btn').style.display  = admin ? 'flex' : 'none';
+  document.getElementById('check-all').style.display        = admin ? 'inline-block' : 'none';
+}
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+let articles = [
+  { id:1, title:'Panduan SEO Website',    url:'example.com/seo',     review:'Sudah Diperiksa', approval:'Approved',  task:'',             status:'Menunggu Task' },
+  { id:2, title:'Strategi Facebook Ads',  url:'example.com/fb-ads',  review:'Sudah Diperiksa', approval:'Approved',  task:'',             status:'Menunggu Task' },
+  { id:3, title:'Cara Menulis Konten',    url:'example.com/konten',  review:'Belum Diperiksa', approval:'',          task:'',             status:'Draft' },
+  { id:4, title:'Tips Landing Page',      url:'example.com/landing', review:'Sudah Diperiksa', approval:'Approved',  task:'Tugas Dibuat', status:'Published' },
+  { id:5, title:'Marketing untuk Pemula', url:'example.com/mktg',    review:'Belum Diperiksa', approval:'',          task:'',             status:'Draft' },
+  { id:6, title:'Ide Bisnis Kreatif',     url:'example.com/bisnis',  review:'Belum Diperiksa', approval:'',          task:'',             status:'Draft' },
+  { id:7, title:'Email Marketing 101',    url:'example.com/email',   review:'Sudah Diperiksa', approval:'Approved',  task:'Tugas Dibuat', status:'Published' },
+  { id:8, title:'Copywriting Hebat',      url:'example.com/copy',    review:'Sudah Diperiksa', approval:'',          task:'',             status:'Draft' },
+];
+let nextId = 9;
+let deleteTargetId = null;
+let selectedIds = new Set();
+let currentPage = 1;
+const PAGE_SIZE = 5;
+
+// ── FILTER ───────────────────────────────────────────────────────────────────
+function getFiltered() {
+  const q       = document.getElementById('search-input').value.toLowerCase();
+  const fReview = document.getElementById('filter-review').value;
+  const fAppr   = document.getElementById('filter-approval').value;
+  const fStatus = document.getElementById('filter-status').value;
+  return articles.filter(a => {
+    if (q && !a.title.toLowerCase().includes(q) && !a.url.toLowerCase().includes(q)) return false;
+    if (fReview && a.review !== fReview) return false;
+    if (fAppr === 'Approved' && a.approval !== 'Approved') return false;
+    if (fAppr === 'Belum Dibuat' && a.approval === 'Approved') return false;
+    if (fStatus && a.status !== fStatus) return false;
+    return true;
+  });
+}
+
+function onFilterChange() { currentPage = 1; renderTable(); }
+
+// ── BADGE HELPERS ─────────────────────────────────────────────────────────────
+function reviewBadge(v) {
+  if (v === 'Sudah Diperiksa') return `<span class="badge badge-blue-outline">Sudah Diperiksa</span>`;
+  return `<span class="badge badge-orange-outline">Belum Diperiksa</span>`;
+}
+function approvalBadge(v) {
+  return v === 'Approved' ? `<span class="badge badge-green-solid">Approved</span>` : `<span class="dash-text">Belum Dibuat</span>`;
+}
+function taskBadge(v) {
+  return v === 'Tugas Dibuat' ? `<span style="font-size:13px;color:#374151">Tugas Dibuat</span>` : `<span class="dash-text">Belum Dibuat</span>`;
+}
+function statusBadge(v) {
+  if (v === 'Published')     return `<span class="badge badge-published">Published</span>`;
+  if (v === 'Menunggu Task') return `<span class="badge badge-gray">Menunggu Task</span>`;
+  return `<span class="badge badge-sky">Draft</span>`;
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderAll() {
+  updateStats();
+  updatePanels();
+  renderTable();
+}
+
+function updateStats() {
+  document.getElementById('stat-belum').textContent     = articles.filter(a=>a.review==='Belum Diperiksa').length;
+  document.getElementById('stat-sudah').textContent     = articles.filter(a=>a.review==='Sudah Diperiksa').length;
+  document.getElementById('stat-approved').textContent  = articles.filter(a=>a.approval==='Approved').length;
+  document.getElementById('stat-task').textContent      = articles.filter(a=>a.task==='Tugas Dibuat').length;
+  document.getElementById('stat-published').textContent = articles.filter(a=>a.status==='Published').length;
+}
+
+function updatePanels() {
+  const noTask     = articles.filter(a => a.approval==='Approved' && a.task!=='Tugas Dibuat');
+  const needReview = articles.filter(a => a.review==='Belum Diperiksa');
+  const p1 = document.getElementById('panel-approved-notask');
+  p1.innerHTML = noTask.length ? noTask.map(a=>`<div class="panel-item"><span class="dot dot-orange"></span>${escHtml(a.title)}</div>`).join('') : '<div class="panel-empty">Semua artikel sudah punya task ✅</div>';
+  const p2 = document.getElementById('panel-need-review');
+  p2.innerHTML = needReview.length ? needReview.map(a=>`<div class="panel-item"><span class="dot dot-blue"></span>${escHtml(a.title)}</div>`).join('') : '<div class="panel-empty">Tidak ada artikel yang perlu diperiksa ✅</div>';
+}
+
+function renderTable() {
+  const filtered   = getFiltered();
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const pageData = filtered.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+  const tbody    = document.getElementById('article-tbody');
+  const admin    = isAdmin();
+
+  if (pageData.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">Tidak ada artikel ditemukan.</td></tr>`;
+  } else {
+    tbody.innerHTML = pageData.map(a => {
+      const checked = selectedIds.has(a.id) ? 'checked' : '';
+      const rowClass = selectedIds.has(a.id) ? ' class="selected-row"' : '';
+      return `
+      <tr${rowClass} id="row-${a.id}">
+        <td class="check-col">
+          ${admin ? `<input type="checkbox" ${checked} onchange="toggleSelect(${a.id}, this.checked)" />` : ''}
+        </td>
+        <td class="article-title">${escHtml(a.title)}</td>
+        <td><a class="url-link" href="https://${escHtml(a.url)}" target="_blank">${escHtml(a.url)}</a></td>
+        <td>${reviewBadge(a.review)}</td>
+        <td>${approvalBadge(a.approval)}</td>
+        <td>${taskBadge(a.task)}</td>
+        <td>${statusBadge(a.status)}</td>
+        <td>
+          <div class="action-wrap">
+            <button class="action-btn" onclick="toggleDropdown(${a.id})">⋯</button>
+            <div class="dropdown-menu" id="dd-${a.id}">
+              ${admin ? `
+              <button class="dropdown-item" onclick="openEditModal(${a.id})">✏️ Edit</button>
+              <button class="dropdown-item" onclick="quickReview(${a.id})">👁 Tandai Diperiksa</button>
+              <button class="dropdown-item" onclick="quickApprove(${a.id})">✅ Approve</button>
+              <button class="dropdown-item" onclick="quickPublish(${a.id})">🚀 Publish</button>
+              <button class="dropdown-item danger" onclick="openDeleteModal(${a.id})">🗑 Hapus</button>
+              ` : `
+              <button class="dropdown-item" disabled style="opacity:.5;cursor:not-allowed">🔒 Edit (Admin only)</button>
+              <button class="dropdown-item" onclick="viewDetail(${a.id})">👁 Lihat Detail</button>
+              `}
+            </div>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+  updateCheckAllState();
+  renderPagination(totalPages, filtered.length);
+}
+
+function renderPagination(totalPages, total) {
+  const pg = document.getElementById('pagination');
+  if (total === 0) { pg.innerHTML = ''; return; }
+  let html = `<button class="page-btn${currentPage===1?' disabled':''}" onclick="goPage(${currentPage-1})">← Previous</button>`;
+  for (let i=1; i<=totalPages; i++) {
+    html += `<button class="page-btn${i===currentPage?' active':''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  html += `<button class="page-btn${currentPage===totalPages?' disabled':''}" onclick="goPage(${currentPage+1})">Next →</button>`;
+  pg.innerHTML = html;
+}
+
+function goPage(p) {
+  const filtered = getFiltered();
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  if (p < 1 || p > totalPages) return;
+  currentPage = p;
+  renderTable();
+}
+
+// ── SELECTION ─────────────────────────────────────────────────────────────────
+function toggleSelect(id, checked) {
+  if (checked) selectedIds.add(id); else selectedIds.delete(id);
+  const row = document.getElementById(`row-${id}`);
+  if (row) { row.classList.toggle('selected-row', checked); }
+  updateBulkBar();
+  updateCheckAllState();
+}
+
+function toggleSelectAll(checked) {
+  const filtered = getFiltered();
+  const pageData = filtered.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+  pageData.forEach(a => {
+    if (checked) selectedIds.add(a.id); else selectedIds.delete(a.id);
+  });
+  renderTable();
+  updateBulkBar();
+}
+
+function updateCheckAllState() {
+  const ca = document.getElementById('check-all');
+  if (!ca) return;
+  const filtered = getFiltered();
+  const pageData = filtered.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+  if (pageData.length === 0) { ca.checked = false; ca.indeterminate = false; return; }
+  const selCount = pageData.filter(a => selectedIds.has(a.id)).length;
+  ca.checked       = selCount === pageData.length;
+  ca.indeterminate = selCount > 0 && selCount < pageData.length;
+}
+
+function updateBulkBar() {
+  const bar   = document.getElementById('bulk-bar');
+  const count = selectedIds.size;
+  bar.classList.toggle('visible', count > 0);
+  document.getElementById('bulk-count').textContent = `${count} artikel dipilih`;
+}
+
+function clearSelection() {
+  selectedIds.clear();
+  updateBulkBar();
+  renderTable();
+}
+
+// ── BULK ACTIONS ──────────────────────────────────────────────────────────────
+function bulkMarkReview() {
+  if (!isAdmin()) { showToast('Hanya admin yang bisa melakukan ini.', 'error'); return; }
+  let changed = 0;
+  selectedIds.forEach(id => {
+    const a = articles.find(x=>x.id===id);
+    if (a && a.review !== 'Sudah Diperiksa') { a.review = 'Sudah Diperiksa'; changed++; }
+  });
+  clearSelection();
+  renderAll();
+  showToast(`${changed} artikel ditandai Sudah Diperiksa.`, 'success');
+}
+
+function openBulkDeleteModal() {
+  if (!isAdmin()) { showToast('Hanya admin yang bisa menghapus.', 'error'); return; }
+  document.getElementById('bulk-delete-count').textContent = `${selectedIds.size} artikel`;
+  document.getElementById('bulk-delete-modal').classList.add('open');
+}
+function closeBulkDeleteModal() { document.getElementById('bulk-delete-modal').classList.remove('open'); }
+function confirmBulkDelete() {
+  const count = selectedIds.size;
+  articles = articles.filter(a => !selectedIds.has(a.id));
+  closeBulkDeleteModal();
+  clearSelection();
+  currentPage = 1;
+  renderAll();
+  showToast(`${count} artikel berhasil dihapus.`, 'success');
+}
+
+// ── QUICK ACTIONS ─────────────────────────────────────────────────────────────
+function quickReview(id) {
+  if (!isAdmin()) { showToast('Hanya admin yang bisa melakukan ini.', 'error'); return; }
+  const a = articles.find(x=>x.id===id);
+  a.review = 'Sudah Diperiksa';
+  renderAll(); showToast(`"${a.title}" ditandai Sudah Diperiksa`, 'success');
+}
+function quickApprove(id) {
+  if (!isAdmin()) { showToast('Hanya admin yang bisa melakukan ini.', 'error'); return; }
+  const a = articles.find(x=>x.id===id);
+  if (a.review !== 'Sudah Diperiksa') { showToast('Artikel harus diperiksa dulu sebelum Approve.', 'error'); return; }
+  a.approval = 'Approved';
+  if (a.status === 'Draft') a.status = 'Menunggu Task';
+  renderAll(); showToast(`"${a.title}" berhasil di-Approve`, 'success');
+}
+function quickPublish(id) {
+  if (!isAdmin()) { showToast('Hanya admin yang bisa melakukan ini.', 'error'); return; }
+  const a = articles.find(x=>x.id===id);
+  a.status = 'Published'; a.task = 'Tugas Dibuat';
+  renderAll(); showToast(`"${a.title}" berhasil dipublish`, 'success');
+}
+function viewDetail(id) {
+  const a = articles.find(x=>x.id===id);
+  showToast(`📄 ${a.title} — Status: ${a.status}`, 'info');
+}
+
+// ── ADD / EDIT MODAL ──────────────────────────────────────────────────────────
+function openAddModal() {
+  if (!isAdmin()) { showToast('Hanya admin yang bisa menambah artikel.', 'error'); return; }
+  document.getElementById('modal-title').textContent = 'Tambah Artikel Baru';
+  document.getElementById('edit-id').value = '';
+  ['f-title','f-url'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-review').value   = 'Belum Diperiksa';
+  document.getElementById('f-approval').value = '';
+  document.getElementById('f-task').value     = '';
+  document.getElementById('f-status').value   = 'Draft';
+  document.getElementById('article-modal').classList.add('open');
+  setTimeout(() => document.getElementById('f-title').focus(), 100);
+}
+function openEditModal(id) {
+  if (!isAdmin()) { showToast('Hanya admin yang bisa mengedit artikel.', 'error'); return; }
+  const a = articles.find(x=>x.id===id);
+  if (!a) return;
+  document.getElementById('modal-title').textContent = 'Edit Artikel';
+  document.getElementById('edit-id').value    = id;
+  document.getElementById('f-title').value    = a.title;
+  document.getElementById('f-url').value      = a.url;
+  document.getElementById('f-review').value   = a.review;
+  document.getElementById('f-approval').value = a.approval;
+  document.getElementById('f-task').value     = a.task;
+  document.getElementById('f-status').value   = a.status;
+  document.getElementById('article-modal').classList.add('open');
+  setTimeout(() => document.getElementById('f-title').focus(), 100);
+}
+function closeModal() { document.getElementById('article-modal').classList.remove('open'); }
+
+function saveArticle() {
+  if (!isAdmin()) { showToast('Akses ditolak.', 'error'); return; }
+  const title    = document.getElementById('f-title').value.trim();
+  const url      = document.getElementById('f-url').value.trim();
+  const review   = document.getElementById('f-review').value;
+  const approval = document.getElementById('f-approval').value;
+  const task     = document.getElementById('f-task').value;
+  const status   = document.getElementById('f-status').value;
+  const editId   = document.getElementById('edit-id').value;
+  if (!title) { shakeInput('f-title'); showToast('Judul artikel wajib diisi.', 'error'); return; }
+  if (!url)   { shakeInput('f-url');   showToast('URL draft wajib diisi.', 'error'); return; }
+  if (editId) {
+    const a = articles.find(x=>x.id===+editId);
+    if (a) Object.assign(a, {title, url, review, approval, task, status});
+    showToast(`"${title}" berhasil diperbarui`, 'success');
+  } else {
+    articles.push({ id: nextId++, title, url, review, approval, task, status });
+    showToast(`"${title}" berhasil ditambahkan`, 'success');
+  }
+  closeModal(); currentPage = 1; renderAll();
+}
+
+// ── DELETE SINGLE ─────────────────────────────────────────────────────────────
+function openDeleteModal(id) {
+  if (!isAdmin()) { showToast('Hanya admin yang bisa menghapus.', 'error'); return; }
+  deleteTargetId = id;
+  const a = articles.find(x=>x.id===id);
+  document.getElementById('delete-name').textContent = `"${a.title}"`;
+  document.getElementById('delete-modal').classList.add('open');
+}
+function closeDeleteModal() { document.getElementById('delete-modal').classList.remove('open'); deleteTargetId = null; }
+function confirmDelete() {
+  const a = articles.find(x=>x.id===deleteTargetId);
+  articles = articles.filter(x=>x.id!==deleteTargetId);
+  closeDeleteModal(); currentPage = 1; renderAll();
+  showToast(`"${a.title}" dihapus.`, 'success');
+}
+
+// ── DROPDOWN ──────────────────────────────────────────────────────────────────
+function toggleDropdown(id) {
+  document.querySelectorAll('.dropdown-menu').forEach(d => { if (d.id !== `dd-${id}`) d.classList.remove('open'); });
+  document.getElementById(`dd-${id}`).classList.toggle('open');
+}
+document.addEventListener('click', e => { if (!e.target.closest('.action-wrap')) document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('open')); });
+
+// ── DOWNLOAD CSV ──────────────────────────────────────────────────────────────
+function downloadCSV(filter) {
+  let data;
+  const map = {
+    'Belum Diperiksa':  articles.filter(a=>a.review==='Belum Diperiksa'),
+    'Sudah Diperiksa':  articles.filter(a=>a.review==='Sudah Diperiksa'),
+    'Approved':         articles.filter(a=>a.approval==='Approved'),
+    'Task Dibuat':      articles.filter(a=>a.task==='Tugas Dibuat'),
+    'Published':        articles.filter(a=>a.status==='Published'),
+    'approved-no-task': articles.filter(a=>a.approval==='Approved' && a.task!=='Tugas Dibuat'),
+    'need-review':      articles.filter(a=>a.review==='Belum Diperiksa'),
+  };
+  data = map[filter] || articles;
+  if (!data.length) { showToast('Tidak ada data untuk didownload.', 'error'); return; }
+  const headers = ['Judul Artikel','URL Draft','Review','Approval','Task','Status'];
+  const rows    = data.map(a=>[a.title, a.url, a.review, a.approval||'Belum Dibuat', a.task||'Belum Dibuat', a.status]);
+  const csv     = [headers,...rows].map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+  const link    = document.createElement('a');
+  link.href     = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
+  link.download = `artikel-${filter.replace(/\s+/g,'-').toLowerCase()}.csv`;
+  link.click();
+  showToast('File CSV berhasil didownload!', 'success');
+}
+
+// ── TOAST / SHAKE ─────────────────────────────────────────────────────────────
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type + ' show';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+function shakeInput(id) {
+  const el = document.getElementById(id);
+  el.style.borderColor = '#ef4444'; el.style.animation = 'shake .3s';
+  setTimeout(() => { el.style.animation=''; el.style.borderColor=''; }, 400);
+}
+
+// ── KEYBOARD ─────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeDeleteModal(); closeBulkDeleteModal(); }
+  if (e.key === 'Enter') {
+    if (document.getElementById('login-screen').offsetParent !== null) { doLogin(); return; }
+    if (document.getElementById('article-modal').classList.contains('open') && document.activeElement.tagName !== 'SELECT') saveArticle();
+  }
+});
+document.getElementById('article-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeModal(); });
+document.getElementById('delete-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeDeleteModal(); });
+document.getElementById('bulk-delete-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeBulkDeleteModal(); });
+</script>
+</body>
+</html>
