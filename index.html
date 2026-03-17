@@ -149,11 +149,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   padding: 6px 12px; font-size: 13px; color: #374151; cursor: pointer;
 }
 .bulk-cancel-btn:hover { background: #dbeafe; }
-.bulk-review-btn {
-  background: #3b82f6; color: #fff; border: none; border-radius: 6px;
-  padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
-}
-.bulk-review-btn:hover { background: #2563eb; }
 
 table { width: 100%; border-collapse: collapse; }
 thead th { text-align: left; padding: 11px 16px; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; background: #f9fafb; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
@@ -287,22 +282,6 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
 
   <!-- STAT CARDS -->
   <div class="stat-grid">
-    <div class="stat-card orange">
-      <div class="stat-label">Belum Diperiksa</div>
-      <div class="stat-number" id="stat-belum">0</div>
-      <div class="dl-btn-wrap"><div class="dl-btn">
-        <button class="dl-btn-main" onclick="downloadCSV('Belum Diperiksa')">⬇ Download</button>
-        <button class="dl-btn-arrow">▾</button>
-      </div></div>
-    </div>
-    <div class="stat-card blue">
-      <div class="stat-label">Sudah Diperiksa</div>
-      <div class="stat-number" id="stat-sudah">0</div>
-      <div class="dl-btn-wrap"><div class="dl-btn">
-        <button class="dl-btn-main" onclick="downloadCSV('Sudah Diperiksa')">⬇ Download</button>
-        <button class="dl-btn-arrow">▾</button>
-      </div></div>
-    </div>
     <div class="stat-card green">
       <div class="stat-label">Approved</div>
       <div class="stat-number" id="stat-approved">0</div>
@@ -319,14 +298,6 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
         <button class="dl-btn-arrow">▾</button>
       </div></div>
     </div>
-    <div class="stat-card teal">
-      <div class="stat-label">Published</div>
-      <div class="stat-number" id="stat-published">0</div>
-      <div class="dl-btn-wrap"><div class="dl-btn">
-        <button class="dl-btn-main" onclick="downloadCSV('Published')">⬇ Download</button>
-        <button class="dl-btn-arrow">▾</button>
-      </div></div>
-    </div>
   </div>
 
   <!-- PANELS -->
@@ -337,13 +308,6 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
         <button class="panel-dl-btn" onclick="downloadCSV('approved-no-task')">⬇ Download List</button>
       </div>
       <div id="panel-approved-notask"></div>
-    </div>
-    <div class="panel">
-      <div class="panel-header">
-        <div class="panel-title"><span style="color:#3b82f6">📋</span> Artikel Perlu Diperiksa</div>
-        <button class="panel-dl-btn" onclick="downloadCSV('need-review')">⬇ Download List</button>
-      </div>
-      <div id="panel-need-review"></div>
     </div>
   </div>
 
@@ -361,30 +325,18 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
     <div class="table-toolbar">
       <div class="search-wrap">
         <span class="search-icon">🔍</span>
-        <input type="text" id="search-input" placeholder="Cari judul atau URL..." oninput="onFilterChange()" />
+        <input type="text" id="search-input" placeholder="Cari judul, URL atau project..." oninput="onFilterChange()" />
       </div>
-      <select class="filter-select" id="filter-review" onchange="onFilterChange()">
-        <option value="">Semua Review</option>
-        <option>Belum Diperiksa</option>
-        <option>Sudah Diperiksa</option>
-      </select>
       <select class="filter-select" id="filter-approval" onchange="onFilterChange()">
         <option value="">Semua Approval</option>
         <option>Approved</option>
         <option>Belum Dibuat</option>
-      </select>
-      <select class="filter-select" id="filter-status" onchange="onFilterChange()">
-        <option value="">Semua Status</option>
-        <option>Draft</option>
-        <option>Menunggu Task</option>
-        <option>Published</option>
       </select>
     </div>
 
     <!-- BULK ACTION BAR -->
     <div class="bulk-bar" id="bulk-bar">
       <span class="bulk-count" id="bulk-count">0 artikel dipilih</span>
-      <button class="bulk-review-btn" id="bulk-review-btn" onclick="bulkMarkReview()">👁 Tandai Diperiksa</button>
       <button class="bulk-delete-btn" id="bulk-delete-btn" onclick="openBulkDeleteModal()">🗑 Hapus Terpilih</button>
       <button class="bulk-cancel-btn" onclick="clearSelection()">✕ Batal</button>
     </div>
@@ -394,13 +346,12 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
         <thead>
           <tr>
             <th class="check-col"><input type="checkbox" id="check-all" onchange="toggleSelectAll(this.checked)" /></th>
+            <th>Kategori</th>
+            <th>Nama Project</th>
             <th>Judul Artikel</th>
             <th>URL Draft</th>
-            <th>Nama Project</th>
-            <th>Review</th>
             <th>Approval</th>
             <th>Task</th>
-            <th>Status</th>
             <th></th>
           </tr>
         </thead>
@@ -429,17 +380,34 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
         <input class="form-input" id="f-url" placeholder="Contoh: example.com/seo-pemula" />
       </div>
       <div class="form-group">
-        <label>Nama Project</label>
-        <input class="form-input" id="f-project" placeholder="Contoh: Project A" />
+        <label>Kategori <span style="color:#ef4444">*</span></label>
+        <select class="form-select" id="f-category">
+          <option value="">Pilih Kategori</option>
+          <option>On Page</option>
+          <option>Off Page</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Nama Project <span style="color:#ef4444">*</span></label>
+        <select class="form-select" id="f-project">
+          <option value="">Pilih Project</option>
+          <option>ZMivins</option>
+          <option>Ginza Dental</option>
+          <option>Siiri Geomancy</option>
+          <option>Entrust</option>
+          <option>UMW Equipment</option>
+          <option>OP Academy</option>
+          <option>Novena ENT</option>
+          <option>Astique Clinic</option>
+          <option>GFA Global</option>
+          <option>Comnet System</option>
+          <option>Cheap Website Designer</option>
+          <option>Crane Spares</option>
+          <option>East Ocean</option>
+          <option>Evermarch</option>
+        </select>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label>Review</label>
-          <select class="form-select" id="f-review">
-            <option>Belum Diperiksa</option>
-            <option>Sudah Diperiksa</option>
-          </select>
-        </div>
         <div class="form-group">
           <label>Approval</label>
           <select class="form-select" id="f-approval">
@@ -447,21 +415,11 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
             <option>Approved</option>
           </select>
         </div>
-      </div>
-      <div class="form-row">
         <div class="form-group">
           <label>Task</label>
           <select class="form-select" id="f-task">
             <option value="">— Belum Dibuat —</option>
             <option>Tugas Dibuat</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Status</label>
-          <select class="form-select" id="f-status">
-            <option>Draft</option>
-            <option>Menunggu Task</option>
-            <option>Published</option>
           </select>
         </div>
       </div>
@@ -564,20 +522,19 @@ function applyRoleUI() {
   document.getElementById('viewer-notice').style.display = admin ? 'none' : 'flex';
   // Bulk action buttons
   document.getElementById('bulk-delete-btn').style.display  = admin ? 'flex' : 'none';
-  document.getElementById('bulk-review-btn').style.display  = admin ? 'flex' : 'none';
   document.getElementById('check-all').style.display        = admin ? 'inline-block' : 'none';
 }
 
 // ── DATA ──────────────────────────────────────────────────────────────────────
 let articles = [
-  { id:1, title:'Panduan SEO Website',    url:'example.com/seo',     project:'Project A', review:'Sudah Diperiksa', approval:'Approved',  task:'',             status:'Menunggu Task' },
-  { id:2, title:'Strategi Facebook Ads',  url:'example.com/fb-ads',  project:'Project B', review:'Sudah Diperiksa', approval:'Approved',  task:'',             status:'Menunggu Task' },
-  { id:3, title:'Cara Menulis Konten',    url:'example.com/konten',  project:'Project A', review:'Belum Diperiksa', approval:'',          task:'',             status:'Draft' },
-  { id:4, title:'Tips Landing Page',      url:'example.com/landing', project:'Project C', review:'Sudah Diperiksa', approval:'Approved',  task:'Tugas Dibuat', status:'Published' },
-  { id:5, title:'Marketing untuk Pemula', url:'example.com/mktg',    project:'Project B', review:'Belum Diperiksa', approval:'',          task:'',             status:'Draft' },
-  { id:6, title:'Ide Bisnis Kreatif',     url:'example.com/bisnis',  project:'Project D', review:'Belum Diperiksa', approval:'',          task:'',             status:'Draft' },
-  { id:7, title:'Email Marketing 101',    url:'example.com/email',   project:'Project A', review:'Sudah Diperiksa', approval:'Approved',  task:'Tugas Dibuat', status:'Published' },
-  { id:8, title:'Copywriting Hebat',      url:'example.com/copy',    project:'Project C', review:'Sudah Diperiksa', approval:'',          task:'',             status:'Draft' },
+  { id:1, title:'Panduan SEO Website',    url:'example.com/seo',     category:'On Page', project:'ZMivins',         approval:'Approved',  task:'' },
+  { id:2, title:'Strategi Facebook Ads',  url:'example.com/fb-ads',  category:'Off Page', project:'Ginza Dental',    approval:'Approved',  task:'' },
+  { id:3, title:'Cara Menulis Konten',    url:'example.com/konten',  category:'On Page', project:'Siiri Geomancy', approval:'',          task:'' },
+  { id:4, title:'Tips Landing Page',      url:'example.com/landing', category:'On Page', project:'Entrust',        approval:'Approved',  task:'Tugas Dibuat' },
+  { id:5, title:'Marketing untuk Pemula', url:'example.com/mktg',    category:'Off Page', project:'UMW Equipment',  approval:'',          task:'' },
+  { id:6, title:'Ide Bisnis Kreatif',     url:'example.com/bisnis',  category:'On Page', project:'OP Academy',    approval:'',          task:'' },
+  { id:7, title:'Email Marketing 101',    url:'example.com/email',   category:'Off Page', project:'Novena ENT',     approval:'Approved',  task:'Tugas Dibuat' },
+  { id:8, title:'Copywriting Hebat',      url:'example.com/copy',    category:'On Page', project:'Astique Clinic', approval:'',          task:'' },
 ];
 let nextId = 9;
 let deleteTargetId = null;
@@ -588,15 +545,11 @@ const PAGE_SIZE = 5;
 // ── FILTER ───────────────────────────────────────────────────────────────────
 function getFiltered() {
   const q       = document.getElementById('search-input').value.toLowerCase();
-  const fReview = document.getElementById('filter-review').value;
   const fAppr   = document.getElementById('filter-approval').value;
-  const fStatus = document.getElementById('filter-status').value;
   return articles.filter(a => {
-    if (q && !a.title.toLowerCase().includes(q) && !a.url.toLowerCase().includes(q)) return false;
-    if (fReview && a.review !== fReview) return false;
+    if (q && !a.title.toLowerCase().includes(q) && !a.url.toLowerCase().includes(q) && !a.project.toLowerCase().includes(q)) return false;
     if (fAppr === 'Approved' && a.approval !== 'Approved') return false;
     if (fAppr === 'Belum Dibuat' && a.approval === 'Approved') return false;
-    if (fStatus && a.status !== fStatus) return false;
     return true;
   });
 }
@@ -604,20 +557,11 @@ function getFiltered() {
 function onFilterChange() { currentPage = 1; renderTable(); }
 
 // ── BADGE HELPERS ─────────────────────────────────────────────────────────────
-function reviewBadge(v) {
-  if (v === 'Sudah Diperiksa') return `<span class="badge badge-blue-outline">Sudah Diperiksa</span>`;
-  return `<span class="badge badge-orange-outline">Belum Diperiksa</span>`;
-}
 function approvalBadge(v) {
   return v === 'Approved' ? `<span class="badge badge-green-solid">Approved</span>` : `<span class="dash-text">Belum Dibuat</span>`;
 }
 function taskBadge(v) {
   return v === 'Tugas Dibuat' ? `<span style="font-size:13px;color:#374151">Tugas Dibuat</span>` : `<span class="dash-text">Belum Dibuat</span>`;
-}
-function statusBadge(v) {
-  if (v === 'Published')     return `<span class="badge badge-published">Published</span>`;
-  if (v === 'Menunggu Task') return `<span class="badge badge-gray">Menunggu Task</span>`;
-  return `<span class="badge badge-sky">Draft</span>`;
 }
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -631,20 +575,14 @@ function renderAll() {
 }
 
 function updateStats() {
-  document.getElementById('stat-belum').textContent     = articles.filter(a=>a.review==='Belum Diperiksa').length;
-  document.getElementById('stat-sudah').textContent     = articles.filter(a=>a.review==='Sudah Diperiksa').length;
   document.getElementById('stat-approved').textContent  = articles.filter(a=>a.approval==='Approved').length;
   document.getElementById('stat-task').textContent      = articles.filter(a=>a.task==='Tugas Dibuat').length;
-  document.getElementById('stat-published').textContent = articles.filter(a=>a.status==='Published').length;
 }
 
 function updatePanels() {
-  const noTask     = articles.filter(a => a.approval==='Approved' && a.task!=='Tugas Dibuat');
-  const needReview = articles.filter(a => a.review==='Belum Diperiksa');
+  const noTask = articles.filter(a => a.approval==='Approved' && a.task!=='Tugas Dibuat');
   const p1 = document.getElementById('panel-approved-notask');
   p1.innerHTML = noTask.length ? noTask.map(a=>`<div class="panel-item"><span class="dot dot-orange"></span>${escHtml(a.title)}</div>`).join('') : '<div class="panel-empty">Semua artikel sudah punya task ✅</div>';
-  const p2 = document.getElementById('panel-need-review');
-  p2.innerHTML = needReview.length ? needReview.map(a=>`<div class="panel-item"><span class="dot dot-blue"></span>${escHtml(a.title)}</div>`).join('') : '<div class="panel-empty">Tidak ada artikel yang perlu diperiksa ✅</div>';
 }
 
 function renderTable() {
@@ -656,7 +594,7 @@ function renderTable() {
   const admin    = isAdmin();
 
   if (pageData.length === 0) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="9">Tidak ada artikel ditemukan.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">Tidak ada artikel ditemukan.</td></tr>`;
   } else {
     tbody.innerHTML = pageData.map(a => {
       const checked = selectedIds.has(a.id) ? 'checked' : '';
@@ -666,22 +604,19 @@ function renderTable() {
         <td class="check-col">
           ${admin ? `<input type="checkbox" ${checked} onchange="toggleSelect(${a.id}, this.checked)" />` : ''}
         </td>
+        <td><span class="badge badge-${a.category === 'On Page' ? 'blue-outline' : 'orange-outline'}">${escHtml(a.category)}</span></td>
+        <td>${escHtml(a.project)}</td>
         <td class="article-title">${escHtml(a.title)}</td>
         <td><a class="url-link" href="https://${escHtml(a.url)}" target="_blank">${escHtml(a.url)}</a></td>
-        <td>${escHtml(a.project || '-')}</td>
-        <td>${reviewBadge(a.review)}</td>
         <td>${approvalBadge(a.approval)}</td>
         <td>${taskBadge(a.task)}</td>
-        <td>${statusBadge(a.status)}</td>
         <td>
           <div class="action-wrap">
             <button class="action-btn" onclick="toggleDropdown(${a.id})">⋯</button>
             <div class="dropdown-menu" id="dd-${a.id}">
               ${admin ? `
               <button class="dropdown-item" onclick="openEditModal(${a.id})">✏️ Edit</button>
-              <button class="dropdown-item" onclick="quickReview(${a.id})">👁 Tandai Diperiksa</button>
               <button class="dropdown-item" onclick="quickApprove(${a.id})">✅ Approve</button>
-              <button class="dropdown-item" onclick="quickPublish(${a.id})">🚀 Publish</button>
               <button class="dropdown-item danger" onclick="openDeleteModal(${a.id})">🗑 Hapus</button>
               ` : `
               <button class="dropdown-item" disabled style="opacity:.5;cursor:not-allowed">🔒 Edit (Admin only)</button>
@@ -760,18 +695,6 @@ function clearSelection() {
 }
 
 // ── BULK ACTIONS ──────────────────────────────────────────────────────────────
-function bulkMarkReview() {
-  if (!isAdmin()) { showToast('Hanya admin yang bisa melakukan ini.', 'error'); return; }
-  let changed = 0;
-  selectedIds.forEach(id => {
-    const a = articles.find(x=>x.id===id);
-    if (a && a.review !== 'Sudah Diperiksa') { a.review = 'Sudah Diperiksa'; changed++; }
-  });
-  clearSelection();
-  renderAll();
-  showToast(`${changed} artikel ditandai Sudah Diperiksa.`, 'success');
-}
-
 function openBulkDeleteModal() {
   if (!isAdmin()) { showToast('Hanya admin yang bisa menghapus.', 'error'); return; }
   document.getElementById('bulk-delete-count').textContent = `${selectedIds.size} artikel`;
@@ -789,29 +712,15 @@ function confirmBulkDelete() {
 }
 
 // ── QUICK ACTIONS ─────────────────────────────────────────────────────────────
-function quickReview(id) {
-  if (!isAdmin()) { showToast('Hanya admin yang bisa melakukan ini.', 'error'); return; }
-  const a = articles.find(x=>x.id===id);
-  a.review = 'Sudah Diperiksa';
-  renderAll(); showToast(`"${a.title}" ditandai Sudah Diperiksa`, 'success');
-}
 function quickApprove(id) {
   if (!isAdmin()) { showToast('Hanya admin yang bisa melakukan ini.', 'error'); return; }
   const a = articles.find(x=>x.id===id);
-  if (a.review !== 'Sudah Diperiksa') { showToast('Artikel harus diperiksa dulu sebelum Approve.', 'error'); return; }
   a.approval = 'Approved';
-  if (a.status === 'Draft') a.status = 'Menunggu Task';
   renderAll(); showToast(`"${a.title}" berhasil di-Approve`, 'success');
-}
-function quickPublish(id) {
-  if (!isAdmin()) { showToast('Hanya admin yang bisa melakukan ini.', 'error'); return; }
-  const a = articles.find(x=>x.id===id);
-  a.status = 'Published'; a.task = 'Tugas Dibuat';
-  renderAll(); showToast(`"${a.title}" berhasil dipublish`, 'success');
 }
 function viewDetail(id) {
   const a = articles.find(x=>x.id===id);
-  showToast(`📄 ${a.title} — Status: ${a.status}`, 'info');
+  showToast(`📄 ${a.title} — Approval: ${a.approval||'Belum'}, Task: ${a.task||'Belum'}`, 'info');
 }
 
 // ── ADD / EDIT MODAL ──────────────────────────────────────────────────────────
@@ -820,10 +729,10 @@ function openAddModal() {
   document.getElementById('modal-title').textContent = 'Tambah Artikel Baru';
   document.getElementById('edit-id').value = '';
   ['f-title','f-url'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('f-review').value   = 'Belum Diperiksa';
+  document.getElementById('f-category').value = '';
+  document.getElementById('f-project').value  = '';
   document.getElementById('f-approval').value = '';
   document.getElementById('f-task').value     = '';
-  document.getElementById('f-status').value   = 'Draft';
   document.getElementById('article-modal').classList.add('open');
   setTimeout(() => document.getElementById('f-title').focus(), 100);
 }
@@ -835,11 +744,10 @@ function openEditModal(id) {
   document.getElementById('edit-id').value    = id;
   document.getElementById('f-title').value    = a.title;
   document.getElementById('f-url').value      = a.url;
+  document.getElementById('f-category').value = a.category || '';
   document.getElementById('f-project').value  = a.project || '';
-  document.getElementById('f-review').value   = a.review;
   document.getElementById('f-approval').value = a.approval;
   document.getElementById('f-task').value     = a.task;
-  document.getElementById('f-status').value   = a.status;
   document.getElementById('article-modal').classList.add('open');
   setTimeout(() => document.getElementById('f-title').focus(), 100);
 }
@@ -849,20 +757,21 @@ function saveArticle() {
   if (!isAdmin()) { showToast('Akses ditolak.', 'error'); return; }
   const title    = document.getElementById('f-title').value.trim();
   const url      = document.getElementById('f-url').value.trim();
-  const project  = document.getElementById('f-project').value.trim();
-  const review   = document.getElementById('f-review').value;
+  const category = document.getElementById('f-category').value;
+  const project  = document.getElementById('f-project').value;
   const approval = document.getElementById('f-approval').value;
   const task     = document.getElementById('f-task').value;
-  const status   = document.getElementById('f-status').value;
   const editId   = document.getElementById('edit-id').value;
   if (!title) { shakeInput('f-title'); showToast('Judul artikel wajib diisi.', 'error'); return; }
   if (!url)   { shakeInput('f-url');   showToast('URL draft wajib diisi.', 'error'); return; }
+  if (!category) { shakeInput('f-category'); showToast('Kategori wajib dipilih.', 'error'); return; }
+  if (!project) { shakeInput('f-project'); showToast('Nama Project wajib dipilih.', 'error'); return; }
   if (editId) {
     const a = articles.find(x=>x.id===+editId);
-    if (a) Object.assign(a, {title, url, project, review, approval, task, status});
+    if (a) Object.assign(a, {title, url, category, project, approval, task});
     showToast(`"${title}" berhasil diperbarui`, 'success');
   } else {
-    articles.push({ id: nextId++, title, url, project, review, approval, task, status });
+    articles.push({ id: nextId++, title, url, category, project, approval, task });
     showToast(`"${title}" berhasil ditambahkan`, 'success');
   }
   closeModal(); currentPage = 1; renderAll();
@@ -895,18 +804,14 @@ document.addEventListener('click', e => { if (!e.target.closest('.action-wrap'))
 function downloadCSV(filter) {
   let data;
   const map = {
-    'Belum Diperiksa':  articles.filter(a=>a.review==='Belum Diperiksa'),
-    'Sudah Diperiksa':  articles.filter(a=>a.review==='Sudah Diperiksa'),
     'Approved':         articles.filter(a=>a.approval==='Approved'),
     'Task Dibuat':      articles.filter(a=>a.task==='Tugas Dibuat'),
-    'Published':        articles.filter(a=>a.status==='Published'),
     'approved-no-task': articles.filter(a=>a.approval==='Approved' && a.task!=='Tugas Dibuat'),
-    'need-review':      articles.filter(a=>a.review==='Belum Diperiksa'),
   };
   data = map[filter] || articles;
   if (!data.length) { showToast('Tidak ada data untuk didownload.', 'error'); return; }
-  const headers = ['Judul Artikel','URL Draft','Nama Project','Review','Approval','Task','Status'];
-  const rows    = data.map(a=>[a.title, a.url, a.project||'', a.review, a.approval||'Belum Dibuat', a.task||'Belum Dibuat', a.status]);
+  const headers = ['Kategori','Nama Project','Judul Artikel','URL Draft','Approval','Task'];
+  const rows    = data.map(a=>[a.category, a.project, a.title, a.url, a.approval||'Belum Dibuat', a.task||'Belum Dibuat']);
   const csv     = [headers,...rows].map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
   const link    = document.createElement('a');
   link.href     = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
