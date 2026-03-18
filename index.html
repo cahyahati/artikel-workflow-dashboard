@@ -85,7 +85,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .main { padding: 28px 32px; max-width: 1280px; margin: 0 auto; }
 
 /* ── STAT CARDS ── */
-.stat-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 16px; margin-bottom: 24px; }
+.stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
 .stat-card { border-radius: 10px; padding: 20px 20px 14px; color: #fff; display: flex; flex-direction: column; gap: 6px; }
 .stat-card.orange { background: #f97316; }
 .stat-card.blue   { background: #3b82f6; }
@@ -113,6 +113,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .dot-orange { background: #f97316; }
 .dot-blue   { background: #3b82f6; }
+
+/* ── VIEW TOGGLE ── */
+.view-toggle-btn { padding: 9px 16px; border: none; background: #fff; color: #374151; font-size: 13px; font-weight: 600; cursor: pointer; border-right: 1px solid #e5e7eb; transition: all .15s; }
+.view-toggle-btn:first-child { border-radius: 8px 0 0 8px; }
+.view-toggle-btn:last-child { border-radius: 0 8px 8px 0; border-right: none; }
+.view-toggle-btn:hover { background: #f9fafb; }
+.view-toggle-btn.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
 
 /* ── TABLE ── */
 .table-card { background: #fff; border-radius: 10px; border: 1px solid #e5e7eb; overflow: hidden; }
@@ -196,6 +203,24 @@ input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color:
 .page-btn:hover:not(.disabled):not(.active) { background: #f3f4f6; }
 .page-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
 .page-btn.disabled { color: #d1d5db; cursor: default; pointer-events: none; }
+
+/* ── KANBAN ── */
+.kanban-container { background: #f3f4f6; border-radius: 10px; padding: 20px; min-height: 600px; }
+.kanban-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.kanban-column { background: #fff; border-radius: 10px; border: 1px solid #e5e7eb; overflow: hidden; display: flex; flex-direction: column; max-height: 80vh; }
+.kanban-column-header { padding: 16px; background: #f9fafb; border-bottom: 2px solid #e5e7eb; }
+.kanban-column-title { font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 4px; }
+.kanban-column-count { font-size: 12px; color: #6b7280; }
+.kanban-column-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.kanban-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; cursor: grab; transition: all .2s; }
+.kanban-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); border-color: #bfdbfe; }
+.kanban-card:active { cursor: grabbing; }
+.kanban-card.dragging { opacity: .6; transform: rotate(2deg); }
+.kanban-card-title { font-size: 13px; font-weight: 500; color: #111827; margin-bottom: 8px; word-wrap: break-word; }
+.kanban-card-meta { font-size: 11px; color: #6b7280; margin-bottom: 6px; }
+.kanban-card-badges { display: flex; gap: 4px; flex-wrap: wrap; font-size: 11px; }
+.kanban-column.drag-over { background: #eff6ff; }
+.kanban-column-body.drag-over { background: #f0f9ff; }
 
 /* MODAL */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity .2s; }
@@ -290,6 +315,14 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
 
   <!-- STAT CARDS -->
   <div class="stat-grid">
+    <div class="stat-card blue">
+      <div class="stat-label">Total Artikel</div>
+      <div class="stat-number" id="stat-total">0</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-label">Belum Approved</div>
+      <div class="stat-number" id="stat-pending">0</div>
+    </div>
     <div class="stat-card green">
       <div class="stat-label">Approved</div>
       <div class="stat-number" id="stat-approved">0</div>
@@ -319,8 +352,14 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
     </div>
   </div>
 
+  <!-- TABLE / KANBAN TOGGLE -->
+  <div style="display:flex;gap:0;margin-bottom:12px;background:#fff;border-radius:8px;border:1px solid #e5e7eb;width:fit-content">
+    <button class="view-toggle-btn active" id="view-table-btn" onclick="switchView('table')">📋 Table View</button>
+    <button class="view-toggle-btn" id="view-kanban-btn" onclick="switchView('kanban')">📌 Kanban View</button>
+  </div>
+
   <!-- TABLE -->
-  <div class="table-card">
+  <div class="table-card" id="table-view">
     <div class="table-card-header">
       <h2>Daftar Semua Artikel</h2>
       <div style="display:flex;gap:10px;align-items:center">
@@ -345,6 +384,7 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
     <!-- BULK ACTION BAR -->
     <div class="bulk-bar" id="bulk-bar">
       <span class="bulk-count" id="bulk-count">0 artikel dipilih</span>
+      <button class="bulk-update-btn" id="bulk-update-btn" onclick="openBulkUpdateModal()" style="display:flex;align-items:center;gap:6px;background:#3b82f6;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer">⚙️ Update Status</button>
       <button class="bulk-delete-btn" id="bulk-delete-btn" onclick="openBulkDeleteModal()">🗑 Hapus Terpilih</button>
       <button class="bulk-cancel-btn" onclick="clearSelection()">✕ Batal</button>
     </div>
@@ -367,6 +407,46 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
       </table>
     </div>
     <div class="pagination" id="pagination"></div>
+  </div>
+
+  <!-- KANBAN VIEW -->
+  <div class="kanban-container" id="kanban-view" style="display:none">
+    <div class="kanban-board" id="kanban-board"></div>
+  </div>
+
+  <!-- BULK UPDATE MODAL -->
+  <div class="modal-overlay" id="bulk-update-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Bulk Update Status</span>
+        <button class="modal-close" onclick="closeBulkUpdateModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Update Approval Status</label>
+          <select class="form-select" id="bulk-approval-select">
+            <option value="SKIP">— Tidak diubah —</option>
+            <option value="Approved">Approved</option>
+            <option value="">— Belum Dibuat —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Update Task Status</label>
+          <select class="form-select" id="bulk-task-select">
+            <option value="SKIP">— Tidak diubah —</option>
+            <option value="Tugas Dibuat">Tugas Dibuat</option>
+            <option value="">— Belum Dibuat —</option>
+          </select>
+        </div>
+        <div style="margin-top:16px;padding:12px;background:#f3f4f6;border-radius:6px;font-size:13px;color:#374151">
+          Akan mengupdate <span id="bulk-count-modal">0</span> artikel yang dipilih
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeBulkUpdateModal()">Batal</button>
+        <button class="btn-save" onclick="executeBulkUpdate()">Perbarui</button>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -614,6 +694,8 @@ function renderAll() {
 }
 
 function updateStats() {
+  document.getElementById('stat-total').textContent     = articles.length;
+  document.getElementById('stat-pending').textContent   = articles.filter(a=>a.approval!=='Approved').length;
   document.getElementById('stat-approved').textContent  = articles.filter(a=>a.approval==='Approved').length;
   document.getElementById('stat-task').textContent      = articles.filter(a=>a.task==='Tugas Dibuat').length;
 }
@@ -937,9 +1019,131 @@ function shakeInput(id) {
   setTimeout(() => { el.style.animation=''; el.style.borderColor=''; }, 400);
 }
 
+// ── VIEW MANAGEMENT ──────────────────────────────────────────────────────────
+let currentView = 'table';
+function switchView(view) {
+  currentView = view;
+  document.getElementById('table-view').style.display = view === 'table' ? 'block' : 'none';
+  document.getElementById('kanban-view').style.display = view === 'kanban' ? 'block' : 'none';
+  document.getElementById('view-table-btn').classList.toggle('active', view === 'table');
+  document.getElementById('view-kanban-btn').classList.toggle('active', view === 'kanban');
+  if (view === 'kanban') renderKanban();
+  else renderTable();
+}
+
+// ── KANBAN BOARD ──────────────────────────────────────────────────────────────
+function renderKanban() {
+  const filtered = getFiltered();
+  const columns = {
+    'Belum - To Do': { approval: '', task: '', articles: [] },
+    'Belum - In Progress': { approval: '', task: 'Tugas Dibuat', articles: [] },
+    'Approved - To Do': { approval: 'Approved', task: '', articles: [] },
+    'Approved - Done': { approval: 'Approved', task: 'Tugas Dibuat', articles: [] }
+  };
+  filtered.forEach(a => {
+    const key = (a.approval === 'Approved' ? 'Approved' : 'Belum') + ' - ' + (a.task === 'Tugas Dibuat' ? 'Done' : (a.task ? 'In Progress' : 'To Do'));
+    if (columns[key]) columns[key].articles.push(a);
+  });
+  let html = '';
+  Object.entries(columns).forEach(([colName, col]) => {
+    const icon = colName.includes('Belum') ? '📋' : '✅';
+    html += `
+    <div class="kanban-column" data-column="${colName}">
+      <div class="kanban-column-header">
+        <div class="kanban-column-title">${icon} ${colName}</div>
+        <div class="kanban-column-count">${col.articles.length} artikel</div>
+      </div>
+      <div class="kanban-column-body" ondrop="dropCard(event)" ondragover="dragOver(event)" ondragleave="dragLeave(event)">
+        ${col.articles.map(a => `
+          <div class="kanban-card" draggable="true" data-id="${a.id}" ondragstart="dragStart(event)" ondragend="dragEnd(event)">
+            <div class="kanban-card-title">${escHtml(a.title)}</div>
+            <div class="kanban-card-meta">${escHtml(a.project)}</div>
+            <div class="kanban-card-badges">
+              <span class="badge badge-${a.category === 'On Page' ? 'blue-outline' : 'orange-outline'}">${escHtml(a.category)}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  });
+  document.getElementById('kanban-board').innerHTML = html;
+}
+
+let draggedCard = null;
+function dragStart(e) {
+  draggedCard = e.target.closest('.kanban-card');
+  draggedCard.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function dragEnd(e) {
+  if (draggedCard) draggedCard.classList.remove('dragging');
+  document.querySelectorAll('.kanban-column-body.drag-over').forEach(col => col.classList.remove('drag-over'));
+}
+function dragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.target.closest('.kanban-column-body')?.classList.add('drag-over');
+}
+function dragLeave(e) {
+  if (!e.target.closest('.kanban-column-body')?.contains(e.relatedTarget)) {
+    e.target.closest('.kanban-column-body')?.classList.remove('drag-over');
+  }
+}
+function dropCard(e) {
+  e.preventDefault();
+  const col = e.target.closest('.kanban-column-body');
+  if (!col || !draggedCard) return;
+  col.classList.remove('drag-over');
+  const articleId = parseInt(draggedCard.dataset.id);
+  const article = articles.find(a => a.id === articleId);
+  const colName = col.closest('.kanban-column').dataset.column;
+
+  if (colName.includes('Belum')) article.approval = '';
+  else if (colName.includes('Approved')) article.approval = 'Approved';
+
+  if (colName.includes('To Do')) article.task = '';
+  else if (colName.includes('Done')) article.task = 'Tugas Dibuat';
+
+  col.appendChild(draggedCard);
+  renderAll();
+  showToast(`Status "${article.title}" diperbarui!`, 'success');
+}
+
+// ── BULK UPDATE ────────────────────────────────────────────────────────────────
+function openBulkUpdateModal() {
+  if (selectedIds.size === 0) { showToast('Pilih minimal satu artikel.', 'error'); return; }
+  document.getElementById('bulk-count-modal').textContent = selectedIds.size;
+  document.getElementById('bulk-update-modal').classList.add('open');
+}
+function closeBulkUpdateModal() {
+  document.getElementById('bulk-update-modal').classList.remove('open');
+  document.getElementById('bulk-approval-select').value = '';
+  document.getElementById('bulk-task-select').value = '';
+}
+function executeBulkUpdate() {
+  const approval = document.getElementById('bulk-approval-select').value;
+  const task = document.getElementById('bulk-task-select').value;
+  if ((approval === 'SKIP' || approval === '') && (task === 'SKIP' || task === '')) {
+    if (approval === 'SKIP' && task === 'SKIP') { showToast('Pilih minimal satu status untuk diperbarui.', 'error'); return; }
+  }
+  let count = 0;
+  selectedIds.forEach(id => {
+    const a = articles.find(x => x.id === id);
+    if (a) {
+      if (approval !== 'SKIP') { a.approval = approval; }
+      if (task !== 'SKIP') { a.task = task; }
+      count++;
+    }
+  });
+  closeBulkUpdateModal();
+  clearSelection();
+  renderAll();
+  showToast(`${count} artikel berhasil diperbarui!`, 'success');
+}
+
 // ── KEYBOARD ─────────────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModal(); closeDeleteModal(); closeBulkDeleteModal(); closeAddProjectModal(); }
+  if (e.key === 'Escape') { closeModal(); closeDeleteModal(); closeBulkDeleteModal(); closeAddProjectModal(); closeBulkUpdateModal(); }
   if (e.key === 'Enter') {
     if (document.getElementById('login-screen').offsetParent !== null) { doLogin(); return; }
     if (document.getElementById('article-modal').classList.contains('open') && document.activeElement.tagName !== 'SELECT') saveArticle();
@@ -949,6 +1153,7 @@ document.addEventListener('keydown', e => {
 document.getElementById('article-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeModal(); });
 document.getElementById('delete-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeDeleteModal(); });
 document.getElementById('bulk-delete-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeBulkDeleteModal(); });
+document.getElementById('bulk-update-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeBulkUpdateModal(); });
 document.getElementById('add-project-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeAddProjectModal(); });
 document.getElementById('f-project').addEventListener('change', handleProjectChange);
 document.getElementById('new-project-name').addEventListener('keydown', e => { if (e.key==='Enter') saveNewProject(); });
