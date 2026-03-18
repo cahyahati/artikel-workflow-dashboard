@@ -318,10 +318,18 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
     <div class="stat-card blue">
       <div class="stat-label">Total Artikel</div>
       <div class="stat-number" id="stat-total">0</div>
+      <div class="dl-btn-wrap"><div class="dl-btn">
+        <button class="dl-btn-main" onclick="downloadCSV('Total')">⬇ Download</button>
+        <button class="dl-btn-arrow">▾</button>
+      </div></div>
     </div>
     <div class="stat-card orange">
       <div class="stat-label">Belum Approved</div>
       <div class="stat-number" id="stat-pending">0</div>
+      <div class="dl-btn-wrap"><div class="dl-btn">
+        <button class="dl-btn-main" onclick="downloadCSV('Belum Approved')">⬇ Download</button>
+        <button class="dl-btn-arrow">▾</button>
+      </div></div>
     </div>
     <div class="stat-card green">
       <div class="stat-label">Approved</div>
@@ -990,7 +998,9 @@ document.addEventListener('click', e => { if (!e.target.closest('.action-wrap'))
 function downloadCSV(filter) {
   let data;
   const map = {
+    'Total':            articles,
     'Approved':         articles.filter(a=>a.approval==='Approved'),
+    'Belum Approved':   articles.filter(a=>a.approval!=='Approved'),
     'Task Dibuat':      articles.filter(a=>a.task==='Tugas Dibuat'),
     'approved-no-task': articles.filter(a=>a.approval==='Approved' && a.task!=='Tugas Dibuat'),
   };
