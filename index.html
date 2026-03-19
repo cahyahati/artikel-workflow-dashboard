@@ -769,6 +769,7 @@ const DEFAULT_ARTICLES = [
   { id:8, title:'Copywriting Hebat',      url:'example.com/copy',    category:'On Page', project:'Astique Clinic', approval:'',          task:'' },
 ];
 
+
 let articles = loadArticles();
 let nextId = parseInt() || (Math.max(0, ...articles.map(a=>a.id)) + 1);
 let deleteTargetId = null;
@@ -1090,7 +1091,7 @@ const DEFAULT_PROJECTS = ['ZMivins', 'Ginza Dental', 'Siiri Geomancy', 'Entrust'
 let customProjects = [];
 
 function loadCustomProjects() {
-  const stored = ;
+  const stored = localStorage.getItem('customProjects');
   customProjects = stored ? JSON.parse(stored) : [];
   updateProjectDropdowns();
 }
