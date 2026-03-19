@@ -628,15 +628,17 @@ async function loadArticles() {
       .from('articles')
       .select('*')
       .order('id', { ascending: true });
-    
+
     if (error) throw error;
     articles = data || [];
-    nextId = Math.max(...articles.map(a => a.id), 0) + 1;
+    nextId = articles.length > 0 ? Math.max(...articles.map(a => a.id || 0)) + 1 : 1;
     renderTable();
     updateStats();
+    return articles;
   } catch (err) {
     console.error('Load error:', err);
     articles = [];
+    return [];
   }
 }
 
@@ -770,14 +772,22 @@ const DEFAULT_ARTICLES = [
 ];
 
 
-let articles = loadArticles();
-let nextId = parseInt() || (Math.max(0, ...articles.map(a=>a.id)) + 1);
+let articles = [];
+let nextId = 1;
 let deleteTargetId = null;
 let selectedIds = new Set();
 let currentPage = 1;
 let pageSize = 10;
 let sortColumn = null;
 let sortDirection = 'asc';
+
+// Initialize articles from Supabase
+(async () => {
+  articles = await loadArticles() || [];
+  nextId = Math.max(1, (Math.max(0, ...articles.map(a=>a.id || 0)) + 1));
+  renderAll();
+  setupRealtime();
+})();
 
 // ── FILTER ───────────────────────────────────────────────────────────────────
 function getFiltered() {
