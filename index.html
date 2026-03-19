@@ -159,6 +159,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 table { width: 100%; border-collapse: collapse; }
 thead th { text-align: left; padding: 11px 16px; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; background: #f9fafb; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+thead th:not(.check-col):not(:last-child) { cursor: pointer; transition: background .15s; }
+thead th:not(.check-col):not(:last-child):hover { background: #f3f4f6; }
 thead th.check-col { width: 44px; padding: 11px 12px 11px 20px; }
 tbody tr { border-bottom: 1px solid #f3f4f6; transition: background .1s; }
 tbody tr:last-child { border-bottom: none; }
@@ -397,17 +399,28 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
       <button class="bulk-cancel-btn" onclick="clearSelection()">✕ Batal</button>
     </div>
 
+    <!-- PAGE SIZE SELECTOR -->
+    <div style="padding:12px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;font-size:13px">
+      <span style="color:#6b7280">Tampilkan</span>
+      <select class="filter-select" id="page-size-select" onchange="onPageSizeChange()" style="width:70px">
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+      </select>
+      <span style="color:#6b7280">artikel per halaman</span>
+    </div>
+
     <div style="overflow-x:auto">
       <table>
         <thead>
           <tr>
             <th class="check-col"><input type="checkbox" id="check-all" onchange="toggleSelectAll(this.checked)" /></th>
-            <th>Kategori</th>
-            <th>Nama Project</th>
-            <th>Judul Artikel</th>
-            <th>URL Draft</th>
-            <th>Approval</th>
-            <th>Task</th>
+            <th style="cursor:pointer;user-select:none" onclick="toggleSort('category')">Kategori <span id="sort-category"></span></th>
+            <th style="cursor:pointer;user-select:none" onclick="toggleSort('project')">Nama Project <span id="sort-project"></span></th>
+            <th style="cursor:pointer;user-select:none" onclick="toggleSort('title')">Judul Artikel <span id="sort-title"></span></th>
+            <th style="cursor:pointer;user-select:none" onclick="toggleSort('url')">URL Draft <span id="sort-url"></span></th>
+            <th style="cursor:pointer;user-select:none" onclick="toggleSort('approval')">Approval <span id="sort-approval"></span></th>
+            <th style="cursor:pointer;user-select:none" onclick="toggleSort('task')">Task <span id="sort-task"></span></th>
             <th></th>
           </tr>
         </thead>
@@ -667,7 +680,9 @@ let nextId = 9;
 let deleteTargetId = null;
 let selectedIds = new Set();
 let currentPage = 1;
-const PAGE_SIZE = 5;
+let pageSize = 10;
+let sortColumn = null;
+let sortDirection = 'asc';
 
 // ── FILTER ───────────────────────────────────────────────────────────────────
 function getFiltered() {
@@ -682,6 +697,53 @@ function getFiltered() {
 }
 
 function onFilterChange() { currentPage = 1; renderTable(); }
+
+// ── SORTING ───────────────────────────────────────────────────────────────────
+function sortArticles(data, column, direction) {
+  const sorted = [...data].sort((a, b) => {
+    let aVal, bVal;
+    switch(column) {
+      case 'category': aVal = a.category; bVal = b.category; break;
+      case 'project': aVal = a.project; bVal = b.project; break;
+      case 'title': aVal = a.title; bVal = b.title; break;
+      case 'url': aVal = a.url; bVal = b.url; break;
+      case 'approval': aVal = a.approval || ''; bVal = b.approval || ''; break;
+      case 'task': aVal = a.task || ''; bVal = b.task || ''; break;
+      default: return 0;
+    }
+    if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+    if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+  return sorted;
+}
+
+function toggleSort(column) {
+  if (sortColumn === column) {
+    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortColumn = column;
+    sortDirection = 'asc';
+  }
+  updateSortIndicators();
+  currentPage = 1;
+  renderTable();
+}
+
+function updateSortIndicators() {
+  document.querySelectorAll('[id^="sort-"]').forEach(el => el.textContent = '');
+  if (sortColumn) {
+    const indicator = sortDirection === 'asc' ? '▲' : '▼';
+    const el = document.getElementById(`sort-${sortColumn}`);
+    if (el) el.textContent = indicator;
+  }
+}
+
+function onPageSizeChange() {
+  pageSize = parseInt(document.getElementById('page-size-select').value);
+  currentPage = 1;
+  renderTable();
+}
 
 // ── BADGE HELPERS ─────────────────────────────────────────────────────────────
 function approvalBadge(v) {
@@ -715,10 +777,13 @@ function updatePanels() {
 }
 
 function renderTable() {
-  const filtered   = getFiltered();
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  let filtered = getFiltered();
+  if (sortColumn) {
+    filtered = sortArticles(filtered, sortColumn, sortDirection);
+  }
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   if (currentPage > totalPages) currentPage = totalPages;
-  const pageData = filtered.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+  const pageData = filtered.slice((currentPage-1)*pageSize, currentPage*pageSize);
   const tbody    = document.getElementById('article-tbody');
   const admin    = isAdmin();
 
@@ -774,7 +839,7 @@ function renderPagination(totalPages, total) {
 
 function goPage(p) {
   const filtered = getFiltered();
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   if (p < 1 || p > totalPages) return;
   currentPage = p;
   renderTable();
@@ -791,7 +856,7 @@ function toggleSelect(id, checked) {
 
 function toggleSelectAll(checked) {
   const filtered = getFiltered();
-  const pageData = filtered.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+  const pageData = filtered.slice((currentPage-1)*pageSize, currentPage*pageSize);
   pageData.forEach(a => {
     if (checked) selectedIds.add(a.id); else selectedIds.delete(a.id);
   });
