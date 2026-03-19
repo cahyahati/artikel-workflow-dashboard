@@ -8,7 +8,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f3f4f6; color: #1f2937; min-height: 100vh; }
 
-/* ── LOGIN SCREEN ── */
+/* ââ LOGIN SCREEN ââ */
 .login-screen {
   position: fixed; inset: 0; background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
   display: flex; align-items: center; justify-content: center; z-index: 1000;
@@ -49,7 +49,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 }
 .login-hint strong { color: #374151; }
 
-/* ── HEADER ── */
+/* ââ HEADER ââ */
 .header {
   background: #fff; border-bottom: 1px solid #e5e7eb;
   padding: 0 32px; height: 56px;
@@ -81,10 +81,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 }
 .logout-btn:hover { background: #f9fafb; color: #374151; }
 
-/* ── MAIN ── */
+/* ââ MAIN ââ */
 .main { padding: 28px 32px; max-width: 1280px; margin: 0 auto; }
 
-/* ── STAT CARDS ── */
+/* ââ STAT CARDS ââ */
 .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
 .stat-card { border-radius: 10px; padding: 20px 20px 14px; color: #fff; display: flex; flex-direction: column; gap: 6px; }
 .stat-card.orange { background: #f97316; }
@@ -100,7 +100,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .dl-btn-arrow { padding: 7px 10px; background: #fff; border: none; cursor: pointer; color: #9ca3af; }
 .dl-btn-main:hover, .dl-btn-arrow:hover { background: #f9fafb; }
 
-/* ── PANELS ── */
+/* ââ PANELS ââ */
 .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
 .panel { background: #fff; border-radius: 10px; padding: 18px 20px; border: 1px solid #e5e7eb; }
 .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
@@ -114,14 +114,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .dot-orange { background: #f97316; }
 .dot-blue   { background: #3b82f6; }
 
-/* ── VIEW TOGGLE ── */
+/* ââ VIEW TOGGLE ââ */
 .view-toggle-btn { padding: 9px 16px; border: none; background: #fff; color: #374151; font-size: 13px; font-weight: 600; cursor: pointer; border-right: 1px solid #e5e7eb; transition: all .15s; }
 .view-toggle-btn:first-child { border-radius: 8px 0 0 8px; }
 .view-toggle-btn:last-child { border-radius: 0 8px 8px 0; border-right: none; }
 .view-toggle-btn:hover { background: #f9fafb; }
 .view-toggle-btn.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
 
-/* ── TABLE ── */
+/* ââ TABLE ââ */
 .table-card { background: #fff; border-radius: 10px; border: 1px solid #e5e7eb; overflow: hidden; }
 .table-card-header { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f3f4f6; }
 .table-card-header h2 { font-size: 16px; font-weight: 600; color: #111827; }
@@ -212,7 +212,7 @@ input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color:
 .page-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
 .page-btn.disabled { color: #d1d5db; cursor: default; pointer-events: none; }
 
-/* ── KANBAN ── */
+/* ââ KANBAN ââ */
 .kanban-container { background: #f3f4f6; border-radius: 10px; padding: 20px; min-height: 600px; }
 .kanban-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
 .kanban-column { background: #fff; border-radius: 10px; border: 1px solid #e5e7eb; overflow: hidden; display: flex; flex-direction: column; max-height: 80vh; }
@@ -278,11 +278,11 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
 </head>
 <body>
 
-<!-- ── LOGIN SCREEN ── -->
+<!-- ââ LOGIN SCREEN ââ -->
 <div class="login-screen" id="login-screen">
   <div class="login-box">
     <div class="login-logo">
-      <div class="login-logo-icon">📝</div>
+      <div class="login-logo-icon">ð</div>
       <h2>Artikel Workflow</h2>
       <p>Masuk untuk mengakses dashboard</p>
     </div>
@@ -296,17 +296,17 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
         <input type="password" id="login-pass" placeholder="Masukkan password" autocomplete="current-password" />
       </div>
       <div class="login-error" id="login-error"></div>
-      <button class="login-btn" onclick="doLogin()">Masuk →</button>
+      <button class="login-btn" onclick="doLogin()">Masuk â</button>
     </div>
     <div class="login-hint">
       <strong>Demo credentials:</strong><br>
-      👑 Admin &nbsp;— user: <code>admin</code> &nbsp;/ pass: <code>admin123</code><br>
-      👁 Viewer — user: <code>viewer</code> / pass: <code>viewer123</code>
+      ð Admin &nbsp;â user: <code>admin</code> &nbsp;/ pass: <code>admin123</code><br>
+      ð Viewer â user: <code>viewer</code> / pass: <code>viewer123</code>
     </div>
   </div>
 </div>
 
-<!-- ── HEADER ── -->
+<!-- ââ HEADER ââ -->
 <header class="header" id="app-header" style="display:none">
   <h1 class="header-title"><span>Artikel Workflow</span> Dashboard</h1>
   <div class="header-right">
@@ -327,32 +327,32 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
       <div class="stat-label">Total Artikel</div>
       <div class="stat-number" id="stat-total">0</div>
       <div class="dl-btn-wrap"><div class="dl-btn">
-        <button class="dl-btn-main" onclick="downloadCSV('Total')">⬇ Download</button>
-        <button class="dl-btn-arrow">▾</button>
+        <button class="dl-btn-main" onclick="downloadCSV('Total')">â¬ Download</button>
+        <button class="dl-btn-arrow">â¾</button>
       </div></div>
     </div>
     <div class="stat-card orange">
       <div class="stat-label">Belum Approved</div>
       <div class="stat-number" id="stat-pending">0</div>
       <div class="dl-btn-wrap"><div class="dl-btn">
-        <button class="dl-btn-main" onclick="downloadCSV('Belum Approved')">⬇ Download</button>
-        <button class="dl-btn-arrow">▾</button>
+        <button class="dl-btn-main" onclick="downloadCSV('Belum Approved')">â¬ Download</button>
+        <button class="dl-btn-arrow">â¾</button>
       </div></div>
     </div>
     <div class="stat-card green">
       <div class="stat-label">Approved</div>
       <div class="stat-number" id="stat-approved">0</div>
       <div class="dl-btn-wrap"><div class="dl-btn">
-        <button class="dl-btn-main" onclick="downloadCSV('Approved')">⬇ Download</button>
-        <button class="dl-btn-arrow">▾</button>
+        <button class="dl-btn-main" onclick="downloadCSV('Approved')">â¬ Download</button>
+        <button class="dl-btn-arrow">â¾</button>
       </div></div>
     </div>
     <div class="stat-card purple">
       <div class="stat-label">Task Dibuat</div>
       <div class="stat-number" id="stat-task">0</div>
       <div class="dl-btn-wrap"><div class="dl-btn">
-        <button class="dl-btn-main" onclick="downloadCSV('Task Dibuat')">⬇ Download</button>
-        <button class="dl-btn-arrow">▾</button>
+        <button class="dl-btn-main" onclick="downloadCSV('Task Dibuat')">â¬ Download</button>
+        <button class="dl-btn-arrow">â¾</button>
       </div></div>
     </div>
   </div>
@@ -361,8 +361,8 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
   <div class="panel-grid">
     <div class="panel">
       <div class="panel-header">
-        <div class="panel-title"><span>⚠️</span> Approved Tapi Belum Dibuat Task</div>
-        <button class="panel-dl-btn" onclick="downloadCSV('approved-no-task')">⬇ Download List</button>
+        <div class="panel-title"><span>â ï¸</span> Approved Tapi Belum Dibuat Task</div>
+        <button class="panel-dl-btn" onclick="downloadCSV('approved-no-task')">â¬ Download List</button>
       </div>
       <div id="panel-approved-notask"></div>
     </div>
@@ -370,8 +370,8 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
 
   <!-- TABLE / KANBAN TOGGLE -->
   <div style="display:flex;gap:0;margin-bottom:12px;background:#fff;border-radius:8px;border:1px solid #e5e7eb;width:fit-content">
-    <button class="view-toggle-btn active" id="view-table-btn" onclick="switchView('table')">📋 Table View</button>
-    <button class="view-toggle-btn" id="view-kanban-btn" onclick="switchView('kanban')">📌 Kanban View</button>
+    <button class="view-toggle-btn active" id="view-table-btn" onclick="switchView('table')">ð Table View</button>
+    <button class="view-toggle-btn" id="view-kanban-btn" onclick="switchView('kanban')">ð Kanban View</button>
   </div>
 
   <!-- TABLE -->
@@ -379,15 +379,15 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
     <div class="table-card-header">
       <h2>Daftar Semua Artikel</h2>
       <div style="display:flex;gap:10px;align-items:center">
-        <div class="viewer-lock-notice" id="viewer-notice" style="display:none">🔒 Mode Viewer — hanya bisa melihat</div>
-        <button class="add-btn" id="add-btn" onclick="openAddModal()">＋ Tambah Artikel</button>
+        <div class="viewer-lock-notice" id="viewer-notice" style="display:none">ð Mode Viewer â hanya bisa melihat</div>
+        <button class="add-btn" id="add-btn" onclick="openAddModal()">ï¼ Tambah Artikel</button>
       </div>
     </div>
 
     <!-- SEARCH / FILTER -->
     <div class="table-toolbar">
       <div class="search-wrap">
-        <span class="search-icon">🔍</span>
+        <span class="search-icon">ð</span>
         <input type="text" id="search-input" placeholder="Cari judul, URL atau project..." oninput="onFilterChange()" />
       </div>
       <select class="filter-select" id="filter-approval" onchange="onFilterChange()">
@@ -400,9 +400,9 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
     <!-- BULK ACTION BAR -->
     <div class="bulk-bar" id="bulk-bar">
       <span class="bulk-count" id="bulk-count">0 artikel dipilih</span>
-      <button class="bulk-update-btn" id="bulk-update-btn" onclick="openBulkUpdateModal()">⚙️ Update Status</button>
-      <button class="bulk-delete-btn" id="bulk-delete-btn" onclick="openBulkDeleteModal()">🗑 Hapus Terpilih</button>
-      <button class="bulk-cancel-btn" onclick="clearSelection()">✕ Batal</button>
+      <button class="bulk-update-btn" id="bulk-update-btn" onclick="openBulkUpdateModal()">âï¸ Update Status</button>
+      <button class="bulk-delete-btn" id="bulk-delete-btn" onclick="openBulkDeleteModal()">ð Hapus Terpilih</button>
+      <button class="bulk-cancel-btn" onclick="clearSelection()">â Batal</button>
     </div>
 
     <!-- PAGE SIZE SELECTOR -->
@@ -446,23 +446,23 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
     <div class="modal">
       <div class="modal-header">
         <span class="modal-title">Bulk Update Status</span>
-        <button class="modal-close" onclick="closeBulkUpdateModal()">✕</button>
+        <button class="modal-close" onclick="closeBulkUpdateModal()">â</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
           <label>Update Approval Status</label>
           <select class="form-select" id="bulk-approval-select">
-            <option value="SKIP">— Tidak diubah —</option>
+            <option value="SKIP">â Tidak diubah â</option>
             <option value="Approved">Approved</option>
-            <option value="">— Belum Dibuat —</option>
+            <option value="">â Belum Dibuat â</option>
           </select>
         </div>
         <div class="form-group">
           <label>Update Task Status</label>
           <select class="form-select" id="bulk-task-select">
-            <option value="SKIP">— Tidak diubah —</option>
+            <option value="SKIP">â Tidak diubah â</option>
             <option value="Tugas Dibuat">Tugas Dibuat</option>
-            <option value="">— Belum Dibuat —</option>
+            <option value="">â Belum Dibuat â</option>
           </select>
         </div>
         <div style="margin-top:16px;padding:12px;background:#f3f4f6;border-radius:6px;font-size:13px;color:#374151">
@@ -482,7 +482,7 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
   <div class="modal">
     <div class="modal-header">
       <span class="modal-title" id="modal-title">Tambah Artikel Baru</span>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()">â</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="edit-id" />
@@ -521,23 +521,23 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
             <option>Crane Spares</option>
             <option>East Ocean</option>
             <option>Evermarch</option>
-            <option style="color:#3b82f6;font-weight:600">— + Tambah Project Baru —</option>
+            <option style="color:#3b82f6;font-weight:600">â + Tambah Project Baru â</option>
           </select>
-          <button type="button" class="btn-add-project" id="btn-add-project" title="Tambah project baru" style="display:none">＋</button>
+          <button type="button" class="btn-add-project" id="btn-add-project" title="Tambah project baru" style="display:none">ï¼</button>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>Approval</label>
           <select class="form-select" id="f-approval">
-            <option value="">— Belum Dibuat —</option>
+            <option value="">â Belum Dibuat â</option>
             <option>Approved</option>
           </select>
         </div>
         <div class="form-group">
           <label>Task</label>
           <select class="form-select" id="f-task">
-            <option value="">— Belum Dibuat —</option>
+            <option value="">â Belum Dibuat â</option>
             <option>Tugas Dibuat</option>
           </select>
         </div>
@@ -555,7 +555,7 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
   <div class="modal" style="max-width:400px">
     <div class="modal-header">
       <span class="modal-title">Hapus Artikel</span>
-      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+      <button class="modal-close" onclick="closeDeleteModal()">â</button>
     </div>
     <div class="modal-body">
       <p style="font-size:14px;color:#374151;line-height:1.7">Apakah kamu yakin ingin menghapus <strong id="delete-name"></strong>? Tindakan ini tidak bisa dibatalkan.</p>
@@ -572,7 +572,7 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
   <div class="modal" style="max-width:400px">
     <div class="modal-header">
       <span class="modal-title">Hapus Artikel Terpilih</span>
-      <button class="modal-close" onclick="closeBulkDeleteModal()">✕</button>
+      <button class="modal-close" onclick="closeBulkDeleteModal()">â</button>
     </div>
     <div class="modal-body">
       <p style="font-size:14px;color:#374151;line-height:1.7">Kamu akan menghapus <strong id="bulk-delete-count"></strong>. Tindakan ini tidak bisa dibatalkan.</p>
@@ -589,7 +589,7 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
   <div class="modal" style="max-width:420px">
     <div class="modal-header">
       <span class="modal-title">Tambah Project Baru</span>
-      <button class="modal-close" onclick="closeAddProjectModal()">✕</button>
+      <button class="modal-close" onclick="closeAddProjectModal()">â</button>
     </div>
     <div class="modal-body">
       <div class="form-group">
@@ -610,7 +610,7 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
 <div class="toast" id="toast"></div>
 
 <script>
-// ── USERS ────────────────────────────────────────────────────────────────────
+// ââ USERS ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 const USERS = {
   admin:  { password: 'admin123',  role: 'admin',  label: 'Admin' },
   viewer: { password: 'viewer123', role: 'viewer', label: 'Viewer' },
@@ -636,7 +636,7 @@ function doLogin() {
 
   // Update header
   const badge = document.getElementById('role-badge');
-  badge.textContent = record.role === 'admin' ? '👑 Admin' : '👁 Viewer';
+  badge.textContent = record.role === 'admin' ? 'ð Admin' : 'ð Viewer';
   badge.className = 'role-badge ' + record.role;
   document.getElementById('user-label').textContent = record.label;
   document.getElementById('user-avatar').textContent = u[0].toUpperCase();
@@ -671,8 +671,8 @@ function applyRoleUI() {
   if (btnAddProject) btnAddProject.style.display = admin ? 'flex' : 'none';
 }
 
-// ── DATA ──────────────────────────────────────────────────────────────────────
-let articles = [
+// ââ DATA ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+const DEFAULT_ARTICLES = [
   { id:1, title:'Panduan SEO Website',    url:'example.com/seo',     category:'On Page', project:'ZMivins',         approval:'Approved',  task:'' },
   { id:2, title:'Strategi Facebook Ads',  url:'example.com/fb-ads',  category:'Off Page', project:'Ginza Dental',    approval:'Approved',  task:'' },
   { id:3, title:'Cara Menulis Konten',    url:'example.com/konten',  category:'On Page', project:'Siiri Geomancy', approval:'',          task:'' },
@@ -682,7 +682,20 @@ let articles = [
   { id:7, title:'Email Marketing 101',    url:'example.com/email',   category:'Off Page', project:'Novena ENT',     approval:'Approved',  task:'Tugas Dibuat' },
   { id:8, title:'Copywriting Hebat',      url:'example.com/copy',    category:'On Page', project:'Astique Clinic', approval:'',          task:'' },
 ];
-let nextId = 9;
+
+function loadArticles() {
+  try {
+    const stored = localStorage.getItem('artikel_data');
+    return stored ? JSON.parse(stored) : DEFAULT_ARTICLES;
+  } catch(e) { return DEFAULT_ARTICLES; }
+}
+function saveArticles() {
+  localStorage.setItem('artikel_data', JSON.stringify(articles));
+  localStorage.setItem('artikel_next_id', nextId);
+}
+
+let articles = loadArticles();
+let nextId = parseInt(localStorage.getItem('artikel_next_id')) || (Math.max(0, ...articles.map(a=>a.id)) + 1);
 let deleteTargetId = null;
 let selectedIds = new Set();
 let currentPage = 1;
@@ -690,7 +703,7 @@ let pageSize = 10;
 let sortColumn = null;
 let sortDirection = 'asc';
 
-// ── FILTER ───────────────────────────────────────────────────────────────────
+// ââ FILTER âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function getFiltered() {
   const q       = document.getElementById('search-input').value.toLowerCase();
   const fAppr   = document.getElementById('filter-approval').value;
@@ -704,7 +717,7 @@ function getFiltered() {
 
 function onFilterChange() { currentPage = 1; renderTable(); }
 
-// ── SORTING ───────────────────────────────────────────────────────────────────
+// ââ SORTING âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function sortArticles(data, column, direction) {
   const sorted = [...data].sort((a, b) => {
     let aVal, bVal;
@@ -739,7 +752,7 @@ function toggleSort(column) {
 function updateSortIndicators() {
   document.querySelectorAll('[id^="sort-"]').forEach(el => el.textContent = '');
   if (sortColumn) {
-    const indicator = sortDirection === 'asc' ? '▲' : '▼';
+    const indicator = sortDirection === 'asc' ? 'â²' : 'â¼';
     const el = document.getElementById(`sort-${sortColumn}`);
     if (el) el.textContent = indicator;
   }
@@ -751,7 +764,7 @@ function onPageSizeChange() {
   renderTable();
 }
 
-// ── BADGE HELPERS ─────────────────────────────────────────────────────────────
+// ââ BADGE HELPERS âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function approvalBadge(v) {
   return v === 'Approved' ? `<span class="badge badge-green-solid">Approved</span>` : `<span class="dash-text">Belum Dibuat</span>`;
 }
@@ -762,7 +775,7 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── RENDER ────────────────────────────────────────────────────────────────────
+// ââ RENDER ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function renderAll() {
   updateStats();
   updatePanels();
@@ -779,7 +792,7 @@ function updateStats() {
 function updatePanels() {
   const noTask = articles.filter(a => a.approval==='Approved' && a.task!=='Tugas Dibuat');
   const p1 = document.getElementById('panel-approved-notask');
-  p1.innerHTML = noTask.length ? noTask.map(a=>`<div class="panel-item"><span class="dot dot-orange"></span>${escHtml(a.title)}</div>`).join('') : '<div class="panel-empty">Semua artikel sudah punya task ✅</div>';
+  p1.innerHTML = noTask.length ? noTask.map(a=>`<div class="panel-item"><span class="dot dot-orange"></span>${escHtml(a.title)}</div>`).join('') : '<div class="panel-empty">Semua artikel sudah punya task â</div>';
 }
 
 function renderTable() {
@@ -812,15 +825,15 @@ function renderTable() {
         <td>${taskBadge(a.task)}</td>
         <td>
           <div class="action-wrap">
-            <button class="action-btn" onclick="toggleDropdown(${a.id})">⋯</button>
+            <button class="action-btn" onclick="toggleDropdown(${a.id})">â¯</button>
             <div class="dropdown-menu" id="dd-${a.id}">
               ${admin ? `
-              <button class="dropdown-item" onclick="openEditModal(${a.id})">✏️ Edit</button>
-              <button class="dropdown-item" onclick="quickApprove(${a.id})">✅ Approve</button>
-              <button class="dropdown-item danger" onclick="openDeleteModal(${a.id})">🗑 Hapus</button>
+              <button class="dropdown-item" onclick="openEditModal(${a.id})">âï¸ Edit</button>
+              <button class="dropdown-item" onclick="quickApprove(${a.id})">â Approve</button>
+              <button class="dropdown-item danger" onclick="openDeleteModal(${a.id})">ð Hapus</button>
               ` : `
-              <button class="dropdown-item" disabled style="opacity:.5;cursor:not-allowed">🔒 Edit (Admin only)</button>
-              <button class="dropdown-item" onclick="viewDetail(${a.id})">👁 Lihat Detail</button>
+              <button class="dropdown-item" disabled style="opacity:.5;cursor:not-allowed">ð Edit (Admin only)</button>
+              <button class="dropdown-item" onclick="viewDetail(${a.id})">ð Lihat Detail</button>
               `}
             </div>
           </div>
@@ -835,11 +848,11 @@ function renderTable() {
 function renderPagination(totalPages, total) {
   const pg = document.getElementById('pagination');
   if (total === 0) { pg.innerHTML = ''; return; }
-  let html = `<button class="page-btn${currentPage===1?' disabled':''}" onclick="goPage(${currentPage-1})">← Previous</button>`;
+  let html = `<button class="page-btn${currentPage===1?' disabled':''}" onclick="goPage(${currentPage-1})">â Previous</button>`;
   for (let i=1; i<=totalPages; i++) {
     html += `<button class="page-btn${i===currentPage?' active':''}" onclick="goPage(${i})">${i}</button>`;
   }
-  html += `<button class="page-btn${currentPage===totalPages?' disabled':''}" onclick="goPage(${currentPage+1})">Next →</button>`;
+  html += `<button class="page-btn${currentPage===totalPages?' disabled':''}" onclick="goPage(${currentPage+1})">Next â</button>`;
   pg.innerHTML = html;
 }
 
@@ -851,7 +864,7 @@ function goPage(p) {
   renderTable();
 }
 
-// ── SELECTION ─────────────────────────────────────────────────────────────────
+// ââ SELECTION âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function toggleSelect(id, checked) {
   if (checked) selectedIds.add(id); else selectedIds.delete(id);
   const row = document.getElementById(`row-${id}`);
@@ -894,7 +907,7 @@ function clearSelection() {
   renderTable();
 }
 
-// ── BULK ACTIONS ──────────────────────────────────────────────────────────────
+// ââ BULK ACTIONS ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function openBulkDeleteModal() {
   if (!isAdmin()) { showToast('Hanya admin yang bisa menghapus.', 'error'); return; }
   document.getElementById('bulk-delete-count').textContent = `${selectedIds.size} artikel`;
@@ -904,6 +917,7 @@ function closeBulkDeleteModal() { document.getElementById('bulk-delete-modal').c
 function confirmBulkDelete() {
   const count = selectedIds.size;
   articles = articles.filter(a => !selectedIds.has(a.id));
+  saveArticles();
   closeBulkDeleteModal();
   clearSelection();
   currentPage = 1;
@@ -911,19 +925,20 @@ function confirmBulkDelete() {
   showToast(`${count} artikel berhasil dihapus.`, 'success');
 }
 
-// ── QUICK ACTIONS ─────────────────────────────────────────────────────────────
+// ââ QUICK ACTIONS âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function quickApprove(id) {
   if (!isAdmin()) { showToast('Hanya admin yang bisa melakukan ini.', 'error'); return; }
   const a = articles.find(x=>x.id===id);
   a.approval = 'Approved';
+  saveArticles();
   renderAll(); showToast(`"${a.title}" berhasil di-Approve`, 'success');
 }
 function viewDetail(id) {
   const a = articles.find(x=>x.id===id);
-  showToast(`📄 ${a.title} — Approval: ${a.approval||'Belum'}, Task: ${a.task||'Belum'}`, 'info');
+  showToast(`ð ${a.title} â Approval: ${a.approval||'Belum'}, Task: ${a.task||'Belum'}`, 'info');
 }
 
-// ── ADD / EDIT MODAL ──────────────────────────────────────────────────────────
+// ââ ADD / EDIT MODAL ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function openAddModal() {
   if (!isAdmin()) { showToast('Hanya admin yang bisa menambah artikel.', 'error'); return; }
   document.getElementById('modal-title').textContent = 'Tambah Artikel Baru';
@@ -974,10 +989,11 @@ function saveArticle() {
     articles.push({ id: nextId++, title, url, category, project, approval, task });
     showToast(`"${title}" berhasil ditambahkan`, 'success');
   }
+  saveArticles();
   closeModal(); currentPage = 1; renderAll();
 }
 
-// ── DELETE SINGLE ─────────────────────────────────────────────────────────────
+// ââ DELETE SINGLE âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function openDeleteModal(id) {
   if (!isAdmin()) { showToast('Hanya admin yang bisa menghapus.', 'error'); return; }
   deleteTargetId = id;
@@ -989,11 +1005,12 @@ function closeDeleteModal() { document.getElementById('delete-modal').classList.
 function confirmDelete() {
   const a = articles.find(x=>x.id===deleteTargetId);
   articles = articles.filter(x=>x.id!==deleteTargetId);
+  saveArticles();
   closeDeleteModal(); currentPage = 1; renderAll();
   showToast(`"${a.title}" dihapus.`, 'success');
 }
 
-// ── PROJECT MANAGEMENT ────────────────────────────────────────────────────────
+// ââ PROJECT MANAGEMENT ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 const DEFAULT_PROJECTS = ['ZMivins', 'Ginza Dental', 'Siiri Geomancy', 'Entrust', 'UMW Equipment', 'OP Academy', 'Novena ENT', 'Astique Clinic', 'GFA Global', 'Comnet System', 'Cheap Website Designer', 'Crane Spares', 'East Ocean', 'Evermarch'];
 let customProjects = [];
 
@@ -1014,7 +1031,7 @@ function updateProjectDropdowns() {
     const current = select.value;
     const options = select.querySelectorAll('option');
     options.forEach(opt => {
-      if (opt.textContent !== '— + Tambah Project Baru —' && !DEFAULT_PROJECTS.includes(opt.textContent)) opt.remove();
+      if (opt.textContent !== 'â + Tambah Project Baru â' && !DEFAULT_PROJECTS.includes(opt.textContent)) opt.remove();
     });
     customProjects.forEach(proj => {
       const opt = document.createElement('option');
@@ -1027,7 +1044,7 @@ function updateProjectDropdowns() {
 
 function handleProjectChange() {
   const select = document.getElementById('f-project');
-  if (select.value === '— + Tambah Project Baru —') {
+  if (select.value === 'â + Tambah Project Baru â') {
     select.value = '';
     if (isAdmin()) openAddProjectModal();
     else showToast('Hanya admin yang bisa menambah project.', 'error');
@@ -1058,14 +1075,14 @@ function saveNewProject() {
   showToast(`Project "${name}" berhasil ditambahkan!`, 'success');
 }
 
-// ── DROPDOWN ──────────────────────────────────────────────────────────────────
+// ââ DROPDOWN ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function toggleDropdown(id) {
   document.querySelectorAll('.dropdown-menu').forEach(d => { if (d.id !== `dd-${id}`) d.classList.remove('open'); });
   document.getElementById(`dd-${id}`).classList.toggle('open');
 }
 document.addEventListener('click', e => { if (!e.target.closest('.action-wrap')) document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('open')); });
 
-// ── DOWNLOAD CSV ──────────────────────────────────────────────────────────────
+// ââ DOWNLOAD CSV ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function downloadCSV(filter) {
   let data;
   const map = {
@@ -1087,7 +1104,7 @@ function downloadCSV(filter) {
   showToast('File CSV berhasil didownload!', 'success');
 }
 
-// ── TOAST / SHAKE ─────────────────────────────────────────────────────────────
+// ââ TOAST / SHAKE âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function showToast(msg, type='') {
   const t = document.getElementById('toast');
   t.textContent = msg; t.className = 'toast ' + type + ' show';
@@ -1100,7 +1117,7 @@ function shakeInput(id) {
   setTimeout(() => { el.style.animation=''; el.style.borderColor=''; }, 400);
 }
 
-// ── VIEW MANAGEMENT ──────────────────────────────────────────────────────────
+// ââ VIEW MANAGEMENT ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 let currentView = 'table';
 function switchView(view) {
   currentView = view;
@@ -1112,7 +1129,7 @@ function switchView(view) {
   else renderTable();
 }
 
-// ── KANBAN BOARD ──────────────────────────────────────────────────────────────
+// ââ KANBAN BOARD ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function renderKanban() {
   const filtered = getFiltered();
   const columns = {
@@ -1127,7 +1144,7 @@ function renderKanban() {
   });
   let html = '';
   Object.entries(columns).forEach(([colName, col]) => {
-    const icon = colName.includes('Belum') ? '📋' : '✅';
+    const icon = colName.includes('Belum') ? 'ð' : 'â';
     html += `
     <div class="kanban-column" data-column="${colName}">
       <div class="kanban-column-header">
@@ -1190,7 +1207,7 @@ function dropCard(e) {
   showToast(`Status "${article.title}" diperbarui!`, 'success');
 }
 
-// ── BULK UPDATE ────────────────────────────────────────────────────────────────
+// ââ BULK UPDATE ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function openBulkUpdateModal() {
   if (selectedIds.size === 0) { showToast('Pilih minimal satu artikel.', 'error'); return; }
   document.getElementById('bulk-count-modal').textContent = selectedIds.size;
@@ -1216,13 +1233,14 @@ function executeBulkUpdate() {
       count++;
     }
   });
+  saveArticles();
   closeBulkUpdateModal();
   clearSelection();
   renderAll();
   showToast(`${count} artikel berhasil diperbarui!`, 'success');
 }
 
-// ── KEYBOARD ─────────────────────────────────────────────────────────────────
+// ââ KEYBOARD âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { closeModal(); closeDeleteModal(); closeBulkDeleteModal(); closeAddProjectModal(); closeBulkUpdateModal(); }
   if (e.key === 'Enter') {
