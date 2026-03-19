@@ -6,405 +6,663 @@
 <title>Artikel Workflow Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.48.0"></script>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f3f4f6; color: #1f2937; min-height: 100vh; }
 
-/* LOGIN */
-.login-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.login-screen.hidden { display: none; }
-.login-box { background: #fff; border-radius: 16px; padding: 40px 36px; width: 100%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,.25); }
+/* ── LOGIN SCREEN ── */
+.login-screen {
+  position: fixed; inset: 0; background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+  transition: opacity .3s;
+}
+.login-screen.hidden { opacity: 0; pointer-events: none; }
+.login-box {
+  background: #fff; border-radius: 16px; padding: 40px 36px;
+  width: 100%; max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
 .login-logo { text-align: center; margin-bottom: 24px; }
-.login-logo-icon { width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(135deg, #3b82f6, #7c3aed); display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 12px; }
+.login-logo-icon {
+  width: 52px; height: 52px; border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6, #7c3aed);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 24px; margin-bottom: 12px;
+}
 .login-logo h2 { font-size: 20px; font-weight: 700; color: #111827; }
 .login-logo p { font-size: 13px; color: #6b7280; margin-top: 4px; }
 .login-form { display: flex; flex-direction: column; gap: 14px; }
 .login-form label { font-size: 13px; font-weight: 600; color: #374151; }
-.login-form input { width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; margin-top: 5px; }
+.login-form input {
+  width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb;
+  border-radius: 8px; font-size: 14px; outline: none; margin-top: 5px;
+}
 .login-form input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
-.login-btn { width: 100%; padding: 11px; background: #3b82f6; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+.login-btn {
+  width: 100%; padding: 11px; background: #3b82f6; color: #fff;
+  border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+  cursor: pointer; margin-top: 4px; transition: background .15s;
+}
 .login-btn:hover { background: #2563eb; }
-.login-hint { margin-top: 16px; padding: 12px; background: #f9fafb; border-radius: 8px; font-size: 12px; color: #6b7280; line-height: 1.8; }
-.login-error { font-size: 13px; color: #ef4444; text-align: center; min-height: 18px; margin-top: 8px; }
+.login-error { font-size: 13px; color: #ef4444; text-align: center; min-height: 18px; }
+.login-hint {
+  margin-top: 16px; padding: 12px; background: #f9fafb; border-radius: 8px;
+  font-size: 12px; color: #6b7280; line-height: 1.8;
+}
+.login-hint strong { color: #374151; }
 
-/* HEADER */
-.header { background: #fff; border-bottom: 1px solid #e5e7eb; padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+/* ── HEADER ── */
+.header {
+  background: #fff; border-bottom: 1px solid #e5e7eb;
+  padding: 0 32px; height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
 .header-title { font-size: 20px; font-weight: 400; color: #111827; }
 .header-title span { font-weight: 700; }
 .header-right { display: flex; align-items: center; gap: 12px; }
-.role-badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
-.role-badge.admin { background: #fef3c7; color: #92400e; }
-.role-badge.viewer { background: #e0f2fe; color: #0369a1; }
+.role-badge {
+  font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+}
+.role-badge.admin   { background: #fef3c7; color: #92400e; }
+.role-badge.viewer  { background: #e0f2fe; color: #0369a1; }
+.admin-btn {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  border: none; background: none; font-size: 14px; font-weight: 500; color: #374151;
+}
+.admin-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 13px; font-weight: 700;
+}
+.logout-btn {
+  font-size: 12px; color: #6b7280; background: none; border: 1px solid #e5e7eb;
+  border-radius: 6px; padding: 4px 10px; cursor: pointer;
+}
+.logout-btn:hover { background: #f9fafb; color: #374151; }
 
-/* MAIN */
+/* ── MAIN ── */
 .main { padding: 28px 32px; max-width: 1280px; margin: 0 auto; }
 
-/* STAT CARDS */
+/* ── STAT CARDS ── */
 .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
 .stat-card { border-radius: 10px; padding: 20px 20px 14px; color: #fff; display: flex; flex-direction: column; gap: 6px; }
-.stat-card.blue { background: #3b82f6; }
 .stat-card.orange { background: #f97316; }
-.stat-card.green { background: #22c55e; }
+.stat-card.blue   { background: #3b82f6; }
+.stat-card.green  { background: #22c55e; }
 .stat-card.purple { background: #a855f7; }
-.stat-label { font-size: 14px; font-weight: 500; opacity: .92; }
+.stat-card.teal   { background: #14b8a6; }
+.stat-label  { font-size: 14px; font-weight: 500; opacity: .92; }
 .stat-number { font-size: 40px; font-weight: 700; line-height: 1; }
+.dl-btn-wrap { margin-top: 10px; }
+.dl-btn { display: inline-flex; align-items: center; background: #fff; border-radius: 6px; overflow: hidden; width: 100%; }
+.dl-btn-main { display: flex; align-items: center; gap: 6px; padding: 7px 14px; font-size: 13px; font-weight: 500; color: #374151; background: #fff; border: none; cursor: pointer; flex: 1; justify-content: center; border-right: 1px solid #e5e7eb; }
+.dl-btn-arrow { padding: 7px 10px; background: #fff; border: none; cursor: pointer; color: #9ca3af; }
+.dl-btn-main:hover, .dl-btn-arrow:hover { background: #f9fafb; }
 
-/* TABLE */
+/* ── PANELS ── */
+.panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.panel { background: #fff; border-radius: 10px; padding: 18px 20px; border: 1px solid #e5e7eb; }
+.panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.panel-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: #111827; }
+.panel-dl-btn { font-size: 12px; font-weight: 500; color: #374151; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.panel-dl-btn:hover { background: #f9fafb; }
+.panel-item { display: flex; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid #f3f4f6; font-size: 14px; color: #374151; }
+.panel-item:last-child { border-bottom: none; }
+.panel-empty { font-size: 13px; color: #9ca3af; padding: 8px 0; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot-orange { background: #f97316; }
+.dot-blue   { background: #3b82f6; }
+
+/* ── VIEW TOGGLE ── */
+.view-toggle-btn { padding: 9px 16px; border: none; background: #fff; color: #374151; font-size: 13px; font-weight: 600; cursor: pointer; border-right: 1px solid #e5e7eb; transition: all .15s; }
+.view-toggle-btn:first-child { border-radius: 8px 0 0 8px; }
+.view-toggle-btn:last-child { border-radius: 0 8px 8px 0; border-right: none; }
+.view-toggle-btn:hover { background: #f9fafb; }
+.view-toggle-btn.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+
+/* ── TABLE ── */
 .table-card { background: #fff; border-radius: 10px; border: 1px solid #e5e7eb; overflow: hidden; }
+.table-card-header { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f3f4f6; }
+.table-card-header h2 { font-size: 16px; font-weight: 600; color: #111827; }
+.add-btn { display: flex; align-items: center; gap: 7px; background: #3b82f6; color: #fff; border: none; border-radius: 7px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; }
+.add-btn:hover { background: #2563eb; }
+
+/* toolbar */
 .table-toolbar { display: flex; align-items: center; gap: 10px; padding: 12px 20px; border-bottom: 1px solid #f3f4f6; flex-wrap: wrap; }
 .search-wrap { position: relative; flex: 1; min-width: 180px; }
 .search-wrap input { width: 100%; padding: 7px 12px 7px 34px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; outline: none; }
 .search-wrap input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.1); }
 .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; color: #9ca3af; pointer-events: none; }
-.add-btn { display: flex; align-items: center; gap: 7px; background: #3b82f6; color: #fff; border: none; border-radius: 7px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
-.add-btn:hover { background: #2563eb; }
+.filter-select { padding: 7px 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; color: #374151; outline: none; cursor: pointer; background: #fff; }
+.filter-select:focus { border-color: #3b82f6; }
+
+/* BULK ACTION BAR */
+.bulk-bar {
+  display: none; align-items: center; gap: 12px;
+  padding: 10px 20px; background: #eff6ff; border-bottom: 1px solid #bfdbfe;
+  flex-wrap: wrap;
+}
+.bulk-bar.visible { display: flex; }
+.bulk-count { font-size: 13px; font-weight: 600; color: #1d4ed8; }
+.bulk-update-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: #3b82f6; color: #fff; border: none; border-radius: 6px;
+  padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.bulk-update-btn:hover { background: #2563eb; }
+.bulk-delete-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: #ef4444; color: #fff; border: none; border-radius: 6px;
+  padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.bulk-delete-btn:hover { background: #dc2626; }
+.bulk-cancel-btn {
+  background: none; border: 1px solid #bfdbfe; border-radius: 6px;
+  padding: 6px 12px; font-size: 13px; color: #374151; cursor: pointer;
+}
+.bulk-cancel-btn:hover { background: #dbeafe; }
 
 table { width: 100%; border-collapse: collapse; }
 thead th { text-align: left; padding: 11px 16px; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; background: #f9fafb; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+thead th:not(.check-col):not(:last-child) { cursor: pointer; transition: background .15s; }
+thead th:not(.check-col):not(:last-child):hover { background: #f3f4f6; }
+thead th.check-col { width: 44px; padding: 11px 12px 11px 20px; }
 tbody tr { border-bottom: 1px solid #f3f4f6; transition: background .1s; }
+tbody tr:last-child { border-bottom: none; }
 tbody tr:hover { background: #fafafa; }
+tbody tr.selected-row { background: #eff6ff; }
+tbody tr.selected-row:hover { background: #dbeafe; }
 tbody td { padding: 13px 16px; font-size: 14px; color: #374151; vertical-align: middle; }
+tbody td.check-col { padding: 13px 12px 13px 20px; }
+
+/* checkbox */
+input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: #3b82f6; border-radius: 4px; }
+
+.article-title { font-weight: 500; color: #111827; }
+.url-link { color: #3b82f6; text-decoration: none; font-size: 13px; }
+.url-link:hover { text-decoration: underline; }
 
 .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; white-space: nowrap; }
-.badge-blue-outline { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+.badge-blue-outline   { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
 .badge-orange-outline { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
-.badge-green { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
-.badge-sky { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+.badge-green-solid    { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+.badge-gray           { background: #f3f4f6; color: #6b7280; }
+.badge-sky            { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+.badge-published      { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.dash-text            { color: #9ca3af; }
 
+/* action dropdown */
+.action-wrap { position: relative; }
 .action-btn { background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 18px; padding: 2px 8px; border-radius: 4px; }
 .action-btn:hover { background: #f3f4f6; color: #374151; }
+.action-btn:disabled { opacity: .3; cursor: not-allowed; }
 .dropdown-menu { position: absolute; right: 0; top: calc(100% + 4px); background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.1); min-width: 160px; z-index: 200; overflow: hidden; display: none; }
 .dropdown-menu.open { display: block; }
 .dropdown-item { display: flex; align-items: center; gap: 8px; padding: 9px 14px; font-size: 13px; color: #374151; cursor: pointer; border: none; background: none; width: 100%; text-align: left; }
 .dropdown-item:hover { background: #f3f4f6; }
 .dropdown-item.danger { color: #ef4444; }
 .dropdown-item.danger:hover { background: #fef2f2; }
+.dropdown-item:disabled, .dropdown-item[data-admin-only].viewer-mode { opacity: .4; cursor: not-allowed; pointer-events: none; }
+
+/* PAGINATION */
+.pagination { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 16px; border-top: 1px solid #f3f4f6; }
+.page-btn { min-width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; font-size: 13px; font-weight: 500; color: #374151; cursor: pointer; padding: 0 10px; }
+.page-btn:hover:not(.disabled):not(.active) { background: #f3f4f6; }
+.page-btn.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+.page-btn.disabled { color: #d1d5db; cursor: default; pointer-events: none; }
+
+/* ── KANBAN ── */
+.kanban-container { background: #f3f4f6; border-radius: 10px; padding: 20px; min-height: 600px; }
+.kanban-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.kanban-column { background: #fff; border-radius: 10px; border: 1px solid #e5e7eb; overflow: hidden; display: flex; flex-direction: column; max-height: 80vh; }
+.kanban-column-header { padding: 16px; background: #f9fafb; border-bottom: 2px solid #e5e7eb; }
+.kanban-column-title { font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 4px; }
+.kanban-column-count { font-size: 12px; color: #6b7280; }
+.kanban-column-body { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.kanban-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; cursor: grab; transition: all .2s; }
+.kanban-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); border-color: #bfdbfe; }
+.kanban-card:active { cursor: grabbing; }
+.kanban-card.dragging { opacity: .6; transform: rotate(2deg); }
+.kanban-card-title { font-size: 13px; font-weight: 500; color: #111827; margin-bottom: 8px; word-wrap: break-word; }
+.kanban-card-meta { font-size: 11px; color: #6b7280; margin-bottom: 6px; }
+.kanban-card-badges { display: flex; gap: 4px; flex-wrap: wrap; font-size: 11px; }
+.kanban-column.drag-over { background: #eff6ff; }
+.kanban-column-body.drag-over { background: #f0f9ff; }
 
 /* MODAL */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 500; }
-.modal-overlay.active { display: flex; }
-.modal-box { background: #fff; border-radius: 12px; padding: 28px; width: 100%; max-width: 500px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
-.modal-title { font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
-.modal-close { background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 24px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal { background: #fff; border-radius: 12px; width: 100%; max-width: 520px; box-shadow: 0 20px 40px rgba(0,0,0,.15); transform: translateY(8px); transition: transform .2s; }
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 16px; border-bottom: 1px solid #f3f4f6; }
+.modal-title { font-size: 16px; font-weight: 700; color: #111827; }
+.modal-close { background: none; border: none; font-size: 20px; color: #9ca3af; cursor: pointer; }
 .modal-close:hover { color: #374151; }
-.form-group { margin-bottom: 14px; }
-.form-group label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 5px; }
-.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; }
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.1); }
-.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-.btn-primary { background: #3b82f6; color: #fff; border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer; flex: 1; }
-.btn-primary:hover { background: #2563eb; }
-.btn-secondary { background: #f3f4f6; color: #374151; border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer; flex: 1; }
-.btn-secondary:hover { background: #e5e7eb; }
-.btn-danger { background: #ef4444; color: #fff; border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer; flex: 1; }
+.modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+label { font-size: 13px; font-weight: 600; color: #374151; }
+.form-input, .form-select { width: 100%; padding: 9px 12px; border: 1px solid #e5e7eb; border-radius: 7px; font-size: 14px; color: #111827; outline: none; background: #fff; }
+.form-input:focus, .form-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.1); }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px 20px; border-top: 1px solid #f3f4f6; }
+.btn-cancel { padding: 8px 18px; border: 1px solid #e5e7eb; border-radius: 7px; background: #fff; font-size: 14px; font-weight: 500; color: #374151; cursor: pointer; }
+.btn-cancel:hover { background: #f9fafb; }
+.btn-save { padding: 8px 20px; border: none; border-radius: 7px; background: #3b82f6; font-size: 14px; font-weight: 600; color: #fff; cursor: pointer; }
+.btn-save:hover { background: #2563eb; }
+.btn-danger { padding: 8px 20px; border: none; border-radius: 7px; background: #ef4444; font-size: 14px; font-weight: 600; color: #fff; cursor: pointer; }
 .btn-danger:hover { background: #dc2626; }
 
-/* LOADING */
-.loading { text-align: center; padding: 40px; color: #9ca3af; }
-.spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #e5e7eb; border-top-color: #3b82f6; border-radius: 50%; animation: spin .6s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+/* ADD PROJECT BUTTON */
+.btn-add-project {
+  background: #3b82f6; color: #fff; border: none; border-radius: 7px;
+  padding: 9px 12px; font-size: 16px; font-weight: 600; cursor: pointer;
+  transition: background .15s;
+}
+.btn-add-project:hover { background: #2563eb; }
 
-/* SYNC STATUS */
-.sync-status { position: fixed; bottom: 20px; right: 20px; padding: 12px 16px; background: #fff; border-radius: 8px; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,.1); font-size: 12px; color: #6b7280; z-index: 300; }
-.sync-status.synced { color: #16a34a; }
-.sync-status.error { color: #ef4444; }
+/* TOAST */
+.toast { position: fixed; bottom: 24px; right: 24px; background: #1f2937; color: #fff; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,.2); z-index: 900; opacity: 0; transform: translateY(8px); transition: all .25s; pointer-events: none; max-width: 320px; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: #16a34a; }
+.toast.error   { background: #dc2626; }
+.toast.info    { background: #2563eb; }
+
+.empty-row td { text-align: center; padding: 48px; color: #9ca3af; font-size: 14px; }
+.viewer-lock-notice { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6b7280; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 5px 10px; }
+
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+@media (max-width: 900px) { .stat-grid { grid-template-columns: repeat(3,1fr); } .panel-grid { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .stat-grid { grid-template-columns: 1fr 1fr; } .main { padding: 16px; } .form-row { grid-template-columns: 1fr; } .header { padding: 0 16px; } }
+
 </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
-<div class="login-screen" id="loginScreen">
+
+<!-- ── LOGIN SCREEN ── -->
+<div class="login-screen" id="login-screen">
   <div class="login-box">
     <div class="login-logo">
-      <div class="login-logo-icon">&#x1F4DD;</div>
+      <div class="login-logo-icon">📝</div>
       <h2>Artikel Workflow</h2>
       <p>Masuk untuk mengakses dashboard</p>
     </div>
     <div class="login-form">
-      <label>Username</label>
-      <input type="text" id="loginUser" placeholder="Masukkan username" />
-      <label>Password</label>
-      <input type="password" id="loginPass" placeholder="Masukkan password" />
-      <button class="login-btn" onclick="doLogin()">Masuk &#x2192;</button>
-      <div class="login-error" id="loginError"></div>
+      <div>
+        <label>Username</label>
+        <input type="text" id="login-user" placeholder="Masukkan username" autocomplete="username" />
+      </div>
+      <div>
+        <label>Password</label>
+        <input type="password" id="login-pass" placeholder="Masukkan password" autocomplete="current-password" />
+      </div>
+      <div class="login-error" id="login-error"></div>
+      <button class="login-btn" onclick="doLogin()">Masuk →</button>
     </div>
     <div class="login-hint">
-      &#x1F451; Admin — user: <code>admin</code> / pass: <code>admin123</code><br>
-      &#x1F441; Viewer — user: <code>viewer</code> / pass: <code>viewer123</code>
+      <strong>Demo credentials:</strong><br>
+      👑 Admin &nbsp;— user: <code>admin</code> &nbsp;/ pass: <code>admin123</code><br>
+      👁 Viewer — user: <code>viewer</code> / pass: <code>viewer123</code>
     </div>
   </div>
 </div>
 
-<!-- MAIN APP -->
-<div id="mainApp" style="display:none;">
-  <!-- HEADER -->
-  <div class="header">
-    <div class="header-title"><span id="appTitle">Artikel</span> Workflow Dashboard</div>
-    <div class="header-right">
-      <span class="role-badge" id="roleBadge"></span>
-      <button class="login-btn" onclick="doLogout()" style="background:#f3f4f6; color:#374151; width:auto; padding:6px 12px; font-size:12px;">Logout</button>
+<!-- ── HEADER ── -->
+<header class="header" id="app-header" style="display:none">
+  <h1 class="header-title"><span>Artikel Workflow</span> Dashboard</h1>
+  <div class="header-right">
+    <span class="role-badge" id="role-badge"></span>
+    <button class="admin-btn">
+      <div class="admin-avatar" id="user-avatar">A</div>
+      <span id="user-label">Admin</span>
+    </button>
+    <button class="logout-btn" onclick="doLogout()">Keluar</button>
+  </div>
+</header>
+
+<main class="main" id="app-main" style="display:none">
+
+  <!-- STAT CARDS -->
+  <div class="stat-grid">
+    <div class="stat-card blue">
+      <div class="stat-label">Total Artikel</div>
+      <div class="stat-number" id="stat-total">0</div>
+      <div class="dl-btn-wrap"><div class="dl-btn">
+        <button class="dl-btn-main" onclick="downloadCSV('Total')">⬇ Download</button>
+        <button class="dl-btn-arrow">▾</button>
+      </div></div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-label">Belum Approved</div>
+      <div class="stat-number" id="stat-pending">0</div>
+      <div class="dl-btn-wrap"><div class="dl-btn">
+        <button class="dl-btn-main" onclick="downloadCSV('Belum Approved')">⬇ Download</button>
+        <button class="dl-btn-arrow">▾</button>
+      </div></div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Approved</div>
+      <div class="stat-number" id="stat-approved">0</div>
+      <div class="dl-btn-wrap"><div class="dl-btn">
+        <button class="dl-btn-main" onclick="downloadCSV('Approved')">⬇ Download</button>
+        <button class="dl-btn-arrow">▾</button>
+      </div></div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">Task Dibuat</div>
+      <div class="stat-number" id="stat-task">0</div>
+      <div class="dl-btn-wrap"><div class="dl-btn">
+        <button class="dl-btn-main" onclick="downloadCSV('Task Dibuat')">⬇ Download</button>
+        <button class="dl-btn-arrow">▾</button>
+      </div></div>
     </div>
   </div>
 
-  <!-- MAIN CONTENT -->
-  <div class="main">
-    <!-- STAT CARDS -->
-    <div class="stat-grid">
-      <div class="stat-card blue">
-        <div class="stat-label">Total Artikel</div>
-        <div class="stat-number" id="statTotal">0</div>
+  <!-- PANELS -->
+  <div class="panel-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title"><span>⚠️</span> Approved Tapi Belum Dibuat Task</div>
+        <button class="panel-dl-btn" onclick="downloadCSV('approved-no-task')">⬇ Download List</button>
       </div>
-      <div class="stat-card orange">
-        <div class="stat-label">Belum Approved</div>
-        <div class="stat-number" id="statPending">0</div>
-      </div>
-      <div class="stat-card green">
-        <div class="stat-label">Approved</div>
-        <div class="stat-number" id="statApproved">0</div>
-      </div>
-      <div class="stat-card purple">
-        <div class="stat-label">Task Dibuat</div>
-        <div class="stat-number" id="statTask">0</div>
+      <div id="panel-approved-notask"></div>
+    </div>
+  </div>
+
+  <!-- TABLE / KANBAN TOGGLE -->
+  <div style="display:flex;gap:0;margin-bottom:12px;background:#fff;border-radius:8px;border:1px solid #e5e7eb;width:fit-content">
+    <button class="view-toggle-btn active" id="view-table-btn" onclick="switchView('table')">📋 Table View</button>
+    <button class="view-toggle-btn" id="view-kanban-btn" onclick="switchView('kanban')">📌 Kanban View</button>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-card" id="table-view">
+    <div class="table-card-header">
+      <h2>Daftar Semua Artikel</h2>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="viewer-lock-notice" id="viewer-notice" style="display:none">🔒 Mode Viewer — hanya bisa melihat</div>
+        <button class="add-btn" id="add-btn" onclick="openAddModal()">＋ Tambah Artikel</button>
       </div>
     </div>
 
-    <!-- TABLE -->
-    <div class="table-card">
-      <div class="table-toolbar">
-        <div class="search-wrap">
-          <span class="search-icon">&#x1F50D;</span>
-          <input type="text" id="searchBox" placeholder="Cari judul, URL atau project..." onkeyup="filterTable()" />
+    <!-- SEARCH / FILTER -->
+    <div class="table-toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Cari judul, URL atau project..." oninput="onFilterChange()" />
+      </div>
+      <select class="filter-select" id="filter-approval" onchange="onFilterChange()">
+        <option value="">Semua Approval</option>
+        <option>Approved</option>
+        <option>Belum Dibuat</option>
+      </select>
+    </div>
+
+    <!-- BULK ACTION BAR -->
+    <div class="bulk-bar" id="bulk-bar">
+      <span class="bulk-count" id="bulk-count">0 artikel dipilih</span>
+      <button class="bulk-update-btn" id="bulk-update-btn" onclick="openBulkUpdateModal()">⚙️ Update Status</button>
+      <button class="bulk-delete-btn" id="bulk-delete-btn" onclick="openBulkDeleteModal()">🗑 Hapus Terpilih</button>
+      <button class="bulk-cancel-btn" onclick="clearSelection()">✕ Batal</button>
+    </div>
+
+    <!-- PAGE SIZE SELECTOR -->
+    <div style="padding:12px 20px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;font-size:13px">
+      <span style="color:#6b7280">Tampilkan</span>
+      <select class="filter-select" id="page-size-select" onchange="onPageSizeChange()" style="width:70px">
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+      </select>
+      <span style="color:#6b7280">artikel per halaman</span>
+    </div>
+
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th class="check-col"><input type="checkbox" id="check-all" onchange="toggleSelectAll(this.checked)" /></th>
+            <th style="cursor:pointer;user-select:none" onclick="toggleSort('category')">Kategori <span id="sort-category"></span></th>
+            <th style="cursor:pointer;user-select:none" onclick="toggleSort('project')">Nama Project <span id="sort-project"></span></th>
+            <th style="cursor:pointer;user-select:none" onclick="toggleSort('title')">Judul Artikel <span id="sort-title"></span></th>
+            <th style="cursor:pointer;user-select:none" onclick="toggleSort('url')">URL Draft <span id="sort-url"></span></th>
+            <th style="cursor:pointer;user-select:none" onclick="toggleSort('approval')">Approval <span id="sort-approval"></span></th>
+            <th style="cursor:pointer;user-select:none" onclick="toggleSort('task')">Task <span id="sort-task"></span></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="article-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <!-- KANBAN VIEW -->
+  <div class="kanban-container" id="kanban-view" style="display:none">
+    <div class="kanban-board" id="kanban-board"></div>
+  </div>
+
+  <!-- BULK UPDATE MODAL -->
+  <div class="modal-overlay" id="bulk-update-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Bulk Update Status</span>
+        <button class="modal-close" onclick="closeBulkUpdateModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Update Approval Status</label>
+          <select class="form-select" id="bulk-approval-select">
+            <option value="SKIP">— Tidak diubah —</option>
+            <option value="Approved">Approved</option>
+            <option value="">— Belum Dibuat —</option>
+          </select>
         </div>
-        <button class="add-btn" onclick="openAddModal()" id="addBtn">&#xFF0B; Tambah Artikel</button>
+        <div class="form-group">
+          <label>Update Task Status</label>
+          <select class="form-select" id="bulk-task-select">
+            <option value="SKIP">— Tidak diubah —</option>
+            <option value="Tugas Dibuat">Tugas Dibuat</option>
+            <option value="">— Belum Dibuat —</option>
+          </select>
+        </div>
+        <div style="margin-top:16px;padding:12px;background:#f3f4f6;border-radius:6px;font-size:13px;color:#374151">
+          Akan mengupdate <span id="bulk-count-modal">0</span> artikel yang dipilih
+        </div>
       </div>
-      <div style="overflow-x: auto;">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:35%">Judul</th>
-              <th style="width:20%">Kategori</th>
-              <th style="width:15%">Approval</th>
-              <th style="width:15%">Task</th>
-              <th style="width:15%">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody">
-            <tr><td colspan="5" class="loading">&#x1F300; Loading dari cloud...</td></tr>
-          </tbody>
-        </table>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeBulkUpdateModal()">Batal</button>
+        <button class="btn-save" onclick="executeBulkUpdate()">Perbarui</button>
       </div>
     </div>
   </div>
-</div>
-
-<!-- SYNC STATUS -->
-<div class="sync-status" id="syncStatus" style="display:none;">
-  &#x1F504; Sync...
-</div>
+</main>
 
 <!-- ADD/EDIT MODAL -->
-<div class="modal-overlay" id="addModal">
-  <div class="modal-box">
-    <div class="modal-title">
-      <span id="modalTitle">Tambah Artikel Baru</span>
-      <button class="modal-close" onclick="closeAddModal()">&#x2715;</button>
+<div class="modal-overlay" id="article-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Tambah Artikel Baru</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
-    <div class="form-group">
-      <label>Judul Artikel *</label>
-      <input type="text" id="formTitle" placeholder="Contoh: Panduan SEO Website" />
+    <div class="modal-body">
+      <input type="hidden" id="edit-id" />
+      <div class="form-group">
+        <label>Judul Artikel <span style="color:#ef4444">*</span></label>
+        <input class="form-input" id="f-title" placeholder="Contoh: Panduan SEO untuk Pemula" />
+      </div>
+      <div class="form-group">
+        <label>URL Draft <span style="color:#ef4444">*</span></label>
+        <input class="form-input" id="f-url" placeholder="Contoh: example.com/seo-pemula" />
+      </div>
+      <div class="form-group">
+        <label>Kategori <span style="color:#ef4444">*</span></label>
+        <select class="form-select" id="f-category">
+          <option value="">Pilih Kategori</option>
+          <option>On Page</option>
+          <option>Off Page</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Nama Project <span style="color:#ef4444">*</span></label>
+        <div style="display:flex;gap:8px;align-items:stretch">
+          <select class="form-select" id="f-project" style="flex:1">
+            <option value="">Pilih Project</option>
+            <option>ZMivins</option>
+            <option>Ginza Dental</option>
+            <option>Siiri Geomancy</option>
+            <option>Entrust</option>
+            <option>UMW Equipment</option>
+            <option>OP Academy</option>
+            <option>Novena ENT</option>
+            <option>Astique Clinic</option>
+            <option>GFA Global</option>
+            <option>Comnet System</option>
+            <option>Cheap Website Designer</option>
+            <option>Crane Spares</option>
+            <option>East Ocean</option>
+            <option>Evermarch</option>
+            <option style="color:#3b82f6;font-weight:600">— + Tambah Project Baru —</option>
+          </select>
+          <button type="button" class="btn-add-project" id="btn-add-project" title="Tambah project baru" style="display:none">＋</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Approval</label>
+          <select class="form-select" id="f-approval">
+            <option value="">— Belum Dibuat —</option>
+            <option>Approved</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Task</label>
+          <select class="form-select" id="f-task">
+            <option value="">— Belum Dibuat —</option>
+            <option>Tugas Dibuat</option>
+          </select>
+        </div>
+      </div>
     </div>
-    <div class="form-group">
-      <label>URL *</label>
-      <input type="text" id="formUrl" placeholder="Contoh: https://example.com/seo" />
-    </div>
-    <div class="form-group">
-      <label>Kategori</label>
-      <select id="formCategory">
-        <option value="">-- Pilih Kategori --</option>
-        <option value="On Page">On Page</option>
-        <option value="Off Page">Off Page</option>
-        <option value="Technical">Technical</option>
-        <option value="Content">Content</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Project</label>
-      <input type="text" id="formProject" placeholder="Contoh: ZMivins" />
-    </div>
-    <div class="form-group">
-      <label>Approval Status</label>
-      <select id="formApproval">
-        <option value="Belum Approved">Belum Approved</option>
-        <option value="Approved">Approved</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Task</label>
-      <input type="text" id="formTask" placeholder="Nama task yang dibuat" />
-    </div>
-    <div class="modal-actions">
-      <button class="btn-primary" onclick="saveArticle()">Simpan</button>
-      <button class="btn-secondary" onclick="closeAddModal()">Batal</button>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Batal</button>
+      <button class="btn-save" onclick="saveArticle()">Simpan</button>
     </div>
   </div>
 </div>
 
-<!-- DELETE CONFIRMATION -->
-<div class="modal-overlay" id="deleteModal">
-  <div class="modal-box" style="max-width: 400px;">
-    <div class="modal-title">
-      <span>Hapus Artikel?</span>
-      <button class="modal-close" onclick="closeDeleteModal()">&#x2715;</button>
+<!-- DELETE SINGLE MODAL -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <span class="modal-title">Hapus Artikel</span>
+      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
     </div>
-    <p style="color: #6b7280; margin-bottom: 20px;">Anda yakin ingin menghapus artikel ini? Tindakan ini tidak dapat dibatalkan.</p>
-    <div class="modal-actions">
+    <div class="modal-body">
+      <p style="font-size:14px;color:#374151;line-height:1.7">Apakah kamu yakin ingin menghapus <strong id="delete-name"></strong>? Tindakan ini tidak bisa dibatalkan.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeDeleteModal()">Batal</button>
       <button class="btn-danger" onclick="confirmDelete()">Hapus</button>
-      <button class="btn-secondary" onclick="closeDeleteModal()">Batal</button>
     </div>
   </div>
 </div>
+
+<!-- BULK DELETE CONFIRM MODAL -->
+<div class="modal-overlay" id="bulk-delete-modal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <span class="modal-title">Hapus Artikel Terpilih</span>
+      <button class="modal-close" onclick="closeBulkDeleteModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:#374151;line-height:1.7">Kamu akan menghapus <strong id="bulk-delete-count"></strong>. Tindakan ini tidak bisa dibatalkan.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeBulkDeleteModal()">Batal</button>
+      <button class="btn-danger" onclick="confirmBulkDelete()">Hapus Semua</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD NEW PROJECT MODAL -->
+<div class="modal-overlay" id="add-project-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <span class="modal-title">Tambah Project Baru</span>
+      <button class="modal-close" onclick="closeAddProjectModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nama Project <span style="color:#ef4444">*</span></label>
+        <input class="form-input" id="new-project-name" placeholder="Contoh: PT Maju Jaya" />
+      </div>
+      <div style="font-size:12px;color:#6b7280;margin-top:12px">
+        Project baru akan ditambahkan ke daftar dan otomatis dipilih.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeAddProjectModal()">Batal</button>
+      <button class="btn-save" onclick="saveNewProject()">Tambah Project</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 
 <script>
-// ============ SUPABASE SETUP ============
+// ============ SUPABASE CONFIG ============
 const SUPABASE_URL = 'https://iseihjjyuhtkyvlcfovn.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlzZWloamp5dWh0a3l2bGNmb3ZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjYzNTQsImV4cCI6MjA4ODk0MjM1NH0.zhKau9AbFaevn03r69rzgb9kxCdTj9LPo4vMQPLS4-U';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ============ STATE ============
-let currentUser = null;
-let articles = [];
-let editingId = null;
-
-// ============ USERS ============
-const users = {
-  admin: { password: 'admin123', role: 'admin', label: 'Admin' },
-  viewer: { password: 'viewer123', role: 'viewer', label: 'Viewer' }
-};
-
-function doLogin() {
-  const user = document.getElementById('loginUser').value;
-  const pass = document.getElementById('loginPass').value;
-  const errEl = document.getElementById('loginError');
-
-  if (!user || !pass) {
-    errEl.textContent = 'Username dan password harus diisi';
-    return;
-  }
-
-  if (!users[user] || users[user].password !== pass) {
-    errEl.textContent = 'Username atau password salah';
-    return;
-  }
-
-  currentUser = { username: user, ...users[user] };
-  localStorage.setItem('currentUser', JSON.stringify(currentUser));
-
-  document.getElementById('loginScreen').classList.add('hidden');
-  document.getElementById('mainApp').style.display = '';
-  document.getElementById('roleBadge').textContent = currentUser.role === 'admin' ? '&#x1F451; Admin' : '&#x1F441; Viewer';
-
-  loadArticles();
-  setupRealtimeSubscription();
-}
-
-function doLogout() {
-  currentUser = null;
-  localStorage.removeItem('currentUser');
-  document.getElementById('loginScreen').classList.remove('hidden');
-  document.getElementById('mainApp').style.display = 'none';
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
-  document.getElementById('loginError').textContent = '';
-  articles = [];
-}
-
-function isAdmin() {
-  return currentUser && currentUser.role === 'admin';
-}
-
-// ============ LOAD DATA ============
+// ============ HELPER: Replace localStorage with Supabase ============
 async function loadArticles() {
   try {
     const { data, error } = await supabase
       .from('articles')
       .select('*')
       .order('id', { ascending: true });
-
+    
     if (error) throw error;
-
     articles = data || [];
+    nextId = Math.max(...articles.map(a => a.id), 0) + 1;
     renderTable();
     updateStats();
   } catch (err) {
-    console.error('Error loading articles:', err);
+    console.error('Load error:', err);
+    articles = [];
   }
 }
 
-// ============ REAL-TIME SUBSCRIPTION ============
-function setupRealtimeSubscription() {
-  const channel = supabase
-    .channel('articles_changes')
-    .on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'articles'
-    }, (payload) => {
-      console.log('Real-time update:', payload);
-      showSyncStatus();
-      loadArticles();
-    })
-    .subscribe();
+async function saveArticles() {
+  // Auto-save via Supabase (no manual save needed)
 }
 
-function showSyncStatus() {
-  const statusEl = document.getElementById('syncStatus');
-  statusEl.style.display = 'block';
-  statusEl.classList.remove('synced', 'error');
-  statusEl.textContent = '&#x1F504; Syncing...';
-  
-  setTimeout(() => {
-    statusEl.classList.add('synced');
-    statusEl.textContent = '&#x2713; Synced';
-    setTimeout(() => { statusEl.style.display = 'none'; }, 2000);
-  }, 500);
-}
-
-// ============ CRUD OPERATIONS ============
-async function saveArticle() {
-  const title = document.getElementById('formTitle').value.trim();
-  const url = document.getElementById('formUrl').value.trim();
-  const category = document.getElementById('formCategory').value;
-  const project = document.getElementById('formProject').value.trim();
-  const approval = document.getElementById('formApproval').value;
-  const task = document.getElementById('formTask').value.trim();
-
-  if (!title || !url) {
-    alert('Judul dan URL harus diisi');
-    return;
-  }
-
+async function saveArticle(art) {
   try {
-    if (editingId) {
+    if (art.id && articles.find(a => a.id === art.id)) {
       // UPDATE
       const { error } = await supabase
         .from('articles')
-        .update({ title, url, category, project, approval, task, updated_at: new Date() })
-        .eq('id', editingId);
-
+        .update({ title: art.title, url: art.url, category: art.category, project: art.project, approval: art.approval, task: art.task, updated_at: new Date() })
+        .eq('id', art.id);
       if (error) throw error;
     } else {
       // INSERT
       const { error } = await supabase
         .from('articles')
-        .insert([{ title, url, category, project, approval, task }]);
-
+        .insert([art]);
       if (error) throw error;
     }
-
-    closeAddModal();
     loadArticles();
   } catch (err) {
-    alert('Error: ' + err.message);
+    console.error('Save error:', err);
   }
 }
 
@@ -414,153 +672,682 @@ async function deleteArticle(id) {
       .from('articles')
       .delete()
       .eq('id', id);
-
     if (error) throw error;
-    closeDeleteModal();
     loadArticles();
   } catch (err) {
-    alert('Error: ' + err.message);
+    console.error('Delete error:', err);
   }
 }
 
-// ============ UI FUNCTIONS ============
-function openAddModal() {
-  editingId = null;
-  document.getElementById('modalTitle').textContent = 'Tambah Artikel Baru';
-  document.getElementById('formTitle').value = '';
-  document.getElementById('formUrl').value = '';
-  document.getElementById('formCategory').value = '';
-  document.getElementById('formProject').value = '';
-  document.getElementById('formApproval').value = 'Belum Approved';
-  document.getElementById('formTask').value = '';
-  document.getElementById('addModal').classList.add('active');
+// ============ SETUP REALTIME ============
+function setupRealtime() {
+  const channel = supabase
+    .channel('articles_changes')
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'articles'
+    }, (payload) => {
+      console.log('Realtime update:', payload);
+      loadArticles();
+    })
+    .subscribe();
 }
 
-function closeAddModal() {
-  document.getElementById('addModal').classList.remove('active');
-}
+// ============ ORIGINAL CODE (with Supabase hooks) ============
 
-function openEditModal(article) {
-  if (!isAdmin()) return;
-  editingId = article.id;
-  document.getElementById('modalTitle').textContent = 'Edit Artikel';
-  document.getElementById('formTitle').value = article.title;
-  document.getElementById('formUrl').value = article.url;
-  document.getElementById('formCategory').value = article.category;
-  document.getElementById('formProject').value = article.project;
-  document.getElementById('formApproval').value = article.approval;
-  document.getElementById('formTask').value = article.task;
-  document.getElementById('addModal').classList.add('active');
-}
+// ── USERS ────────────────────────────────────────────────────────────────────
+const USERS = {
+  admin:  { password: 'admin123',  role: 'admin',  label: 'Admin' },
+  viewer: { password: 'viewer123', role: 'viewer', label: 'Viewer' },
+};
 
-function openDeleteModal(id) {
-  if (!isAdmin()) return;
-  editingId = id;
-  document.getElementById('deleteModal').classList.add('active');
-}
+let currentUser = null; // { username, role, label }
 
-function closeDeleteModal() {
-  document.getElementById('deleteModal').classList.remove('active');
-}
-
-function confirmDelete() {
-  deleteArticle(editingId);
-}
-
-function filterTable() {
-  const search = document.getElementById('searchBox').value.toLowerCase();
-  const rows = document.querySelectorAll('#tableBody tr');
-  
-  rows.forEach(row => {
-    const text = row.textContent.toLowerCase();
-    row.style.display = text.includes(search) ? '' : 'none';
-  });
-}
-
-function renderTable() {
-  const tbody = document.getElementById('tableBody');
-  
-  if (articles.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#9ca3af; padding:40px;">Belum ada artikel</td></tr>';
+function doLogin() {
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  if (!u || !p) { err.textContent = 'Username dan password wajib diisi.'; return; }
+  const record = USERS[u];
+  if (!record || record.password !== p) {
+    err.textContent = 'Username atau password salah.';
+    document.getElementById('login-pass').style.borderColor = '#ef4444';
     return;
   }
+  currentUser = { username: u, role: record.role, label: record.label };
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app-header').style.display = 'flex';
+  document.getElementById('app-main').style.display = 'block';
 
-  tbody.innerHTML = articles.map(a => `
-    <tr>
-      <td><div style="font-weight: 500; color: #111827;">${escapeHtml(a.title)}</div><div style="font-size: 12px; color: #9ca3af; margin-top: 2px;">${escapeHtml(a.url)}</div></td>
-      <td><span class="badge badge-blue-outline">${a.category || '--'}</span></td>
-      <td><span class="badge ${a.approval === 'Approved' ? 'badge-green' : 'badge-orange-outline'}">${a.approval}</span></td>
-      <td><span class="badge badge-sky">${a.task || '--'}</span></td>
-      <td>
-        <div style="position: relative; display: inline-block;">
-          <button class="action-btn" onclick="toggleDropdown(${a.id})">&#x22EF;</button>
-          <div class="dropdown-menu" id="dropdown-${a.id}">
-            ${isAdmin() ? `
-              <button class="dropdown-item" onclick="openEditModal(${JSON.stringify(a).replace(/"/g, '&quot;')})">✏️ Edit</button>
-              <button class="dropdown-item danger" onclick="openDeleteModal(${a.id})">🗑 Hapus</button>
-            ` : ''}
-            <button class="dropdown-item" onclick="viewDetail(${JSON.stringify(a).replace(/"/g, '&quot;')})">👁 Lihat</button>
-          </div>
-        </div>
-      </td>
-    </tr>
-  `).join('');
+  // Update header
+  const badge = document.getElementById('role-badge');
+  badge.textContent = record.role === 'admin' ? '👑 Admin' : '👁 Viewer';
+  badge.className = 'role-badge ' + record.role;
+  document.getElementById('user-label').textContent = record.label;
+  document.getElementById('user-avatar').textContent = u[0].toUpperCase();
+
+  applyRoleUI();
+  loadCustomProjects();
+  renderAll();
 }
 
-function toggleDropdown(id) {
-  const menu = document.getElementById(`dropdown-${id}`);
-  document.querySelectorAll('.dropdown-menu').forEach(m => {
-    if (m !== menu) m.classList.remove('open');
+function doLogout() {
+  currentUser = null;
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('app-header').style.display = 'none';
+  document.getElementById('app-main').style.display = 'none';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').textContent = '';
+  clearSelection();
+}
+
+function isAdmin() { return currentUser && currentUser.role === 'admin'; }
+
+function applyRoleUI() {
+  const admin = isAdmin();
+  document.getElementById('add-btn').style.display     = admin ? 'flex' : 'none';
+  document.getElementById('viewer-notice').style.display = admin ? 'none' : 'flex';
+  // Bulk action buttons
+  document.getElementById('bulk-delete-btn').style.display  = admin ? 'flex' : 'none';
+  document.getElementById('check-all').style.display        = admin ? 'inline-block' : 'none';
+  // Project management button
+  const btnAddProject = document.getElementById('btn-add-project');
+  if (btnAddProject) btnAddProject.style.display = admin ? 'flex' : 'none';
+}
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const DEFAULT_ARTICLES = [
+  { id:1, title:'Panduan SEO Website',    url:'example.com/seo',     category:'On Page', project:'ZMivins',         approval:'Approved',  task:'' },
+  { id:2, title:'Strategi Facebook Ads',  url:'example.com/fb-ads',  category:'Off Page', project:'Ginza Dental',    approval:'Approved',  task:'' },
+  { id:3, title:'Cara Menulis Konten',    url:'example.com/konten',  category:'On Page', project:'Siiri Geomancy', approval:'',          task:'' },
+  { id:4, title:'Tips Landing Page',      url:'example.com/landing', category:'On Page', project:'Entrust',        approval:'Approved',  task:'Tugas Dibuat' },
+  { id:5, title:'Marketing untuk Pemula', url:'example.com/mktg',    category:'Off Page', project:'UMW Equipment',  approval:'',          task:'' },
+  { id:6, title:'Ide Bisnis Kreatif',     url:'example.com/bisnis',  category:'On Page', project:'OP Academy',    approval:'',          task:'' },
+  { id:7, title:'Email Marketing 101',    url:'example.com/email',   category:'Off Page', project:'Novena ENT',     approval:'Approved',  task:'Tugas Dibuat' },
+  { id:8, title:'Copywriting Hebat',      url:'example.com/copy',    category:'On Page', project:'Astique Clinic', approval:'',          task:'' },
+];
+
+
+}
+
+
+let articles = loadArticles();
+let nextId = parseInt() || (Math.max(0, ...articles.map(a=>a.id)) + 1);
+let deleteTargetId = null;
+let selectedIds = new Set();
+let currentPage = 1;
+let pageSize = 10;
+let sortColumn = null;
+let sortDirection = 'asc';
+
+// ── FILTER ───────────────────────────────────────────────────────────────────
+function getFiltered() {
+  const q       = document.getElementById('search-input').value.toLowerCase();
+  const fAppr   = document.getElementById('filter-approval').value;
+  return articles.filter(a => {
+    if (q && !a.title.toLowerCase().includes(q) && !a.url.toLowerCase().includes(q) && !a.project.toLowerCase().includes(q)) return false;
+    if (fAppr === 'Approved' && a.approval !== 'Approved') return false;
+    if (fAppr === 'Belum Dibuat' && a.approval === 'Approved') return false;
+    return true;
   });
-  menu.classList.toggle('open');
 }
 
-function viewDetail(article) {
-  alert(`Judul: ${article.title}
-URL: ${article.url}
-Kategori: ${article.category}
-Project: ${article.project}
-Approval: ${article.approval}
-Task: ${article.task}`);
+function onFilterChange() { currentPage = 1; renderTable(); }
+
+// ── SORTING ───────────────────────────────────────────────────────────────────
+function sortArticles(data, column, direction) {
+  const sorted = [...data].sort((a, b) => {
+    let aVal, bVal;
+    switch(column) {
+      case 'category': aVal = a.category; bVal = b.category; break;
+      case 'project': aVal = a.project; bVal = b.project; break;
+      case 'title': aVal = a.title; bVal = b.title; break;
+      case 'url': aVal = a.url; bVal = b.url; break;
+      case 'approval': aVal = a.approval || ''; bVal = b.approval || ''; break;
+      case 'task': aVal = a.task || ''; bVal = b.task || ''; break;
+      default: return 0;
+    }
+    if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+    if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+  return sorted;
+}
+
+function toggleSort(column) {
+  if (sortColumn === column) {
+    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortColumn = column;
+    sortDirection = 'asc';
+  }
+  updateSortIndicators();
+  currentPage = 1;
+  renderTable();
+}
+
+function updateSortIndicators() {
+  document.querySelectorAll('[id^="sort-"]').forEach(el => el.textContent = '');
+  if (sortColumn) {
+    const indicator = sortDirection === 'asc' ? '▲' : '▼';
+    const el = document.getElementById(`sort-${sortColumn}`);
+    if (el) el.textContent = indicator;
+  }
+}
+
+function onPageSizeChange() {
+  pageSize = parseInt(document.getElementById('page-size-select').value);
+  currentPage = 1;
+  renderTable();
+}
+
+// ── BADGE HELPERS ─────────────────────────────────────────────────────────────
+function approvalBadge(v) {
+  return v === 'Approved' ? `<span class="badge badge-green-solid">Approved</span>` : `<span class="dash-text">Belum Dibuat</span>`;
+}
+function taskBadge(v) {
+  return v === 'Tugas Dibuat' ? `<span style="font-size:13px;color:#374151">Tugas Dibuat</span>` : `<span class="dash-text">Belum Dibuat</span>`;
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderAll() {
+  updateStats();
+  updatePanels();
+  renderTable();
 }
 
 function updateStats() {
-  const total = articles.length;
-  const pending = articles.filter(a => a.approval === 'Belum Approved').length;
-  const approved = articles.filter(a => a.approval === 'Approved').length;
-  const task = articles.filter(a => a.task).length;
-
-  document.getElementById('statTotal').textContent = total;
-  document.getElementById('statPending').textContent = pending;
-  document.getElementById('statApproved').textContent = approved;
-  document.getElementById('statTask').textContent = task;
+  document.getElementById('stat-total').textContent     = articles.length;
+  document.getElementById('stat-pending').textContent   = articles.filter(a=>a.approval!=='Approved').length;
+  document.getElementById('stat-approved').textContent  = articles.filter(a=>a.approval==='Approved').length;
+  document.getElementById('stat-task').textContent      = articles.filter(a=>a.task==='Tugas Dibuat').length;
 }
 
-function escapeHtml(text) {
-  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-  return (text || '').replace(/[&<>"']/g, m => map[m]);
+function updatePanels() {
+  const noTask = articles.filter(a => a.approval==='Approved' && a.task!=='Tugas Dibuat');
+  const p1 = document.getElementById('panel-approved-notask');
+  p1.innerHTML = noTask.length ? noTask.map(a=>`<div class="panel-item"><span class="dot dot-orange"></span>${escHtml(a.title)}</div>`).join('') : '<div class="panel-empty">Semua artikel sudah punya task ✅</div>';
 }
 
-// ============ INIT ============
-window.addEventListener('load', () => {
+function renderTable() {
+  let filtered = getFiltered();
+  if (sortColumn) {
+    filtered = sortArticles(filtered, sortColumn, sortDirection);
+  }
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const pageData = filtered.slice((currentPage-1)*pageSize, currentPage*pageSize);
+  const tbody    = document.getElementById('article-tbody');
+  const admin    = isAdmin();
+
+  if (pageData.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">Tidak ada artikel ditemukan.</td></tr>`;
+  } else {
+    tbody.innerHTML = pageData.map(a => {
+      const checked = selectedIds.has(a.id) ? 'checked' : '';
+      const rowClass = selectedIds.has(a.id) ? ' class="selected-row"' : '';
+      return `
+      <tr${rowClass} id="row-${a.id}">
+        <td class="check-col">
+          ${admin ? `<input type="checkbox" ${checked} onchange="toggleSelect(${a.id}, this.checked)" />` : ''}
+        </td>
+        <td><span class="badge badge-${a.category === 'On Page' ? 'blue-outline' : 'orange-outline'}">${escHtml(a.category)}</span></td>
+        <td>${escHtml(a.project)}</td>
+        <td class="article-title">${escHtml(a.title)}</td>
+        <td><a class="url-link" href="https://${escHtml(a.url)}" target="_blank">${escHtml(a.url)}</a></td>
+        <td>${approvalBadge(a.approval)}</td>
+        <td>${taskBadge(a.task)}</td>
+        <td>
+          <div class="action-wrap">
+            <button class="action-btn" onclick="toggleDropdown(${a.id})">⋯</button>
+            <div class="dropdown-menu" id="dd-${a.id}">
+              ${admin ? `
+              <button class="dropdown-item" onclick="openEditModal(${a.id})">✏️ Edit</button>
+              <button class="dropdown-item" onclick="quickApprove(${a.id})">✅ Approve</button>
+              <button class="dropdown-item danger" onclick="openDeleteModal(${a.id})">🗑 Hapus</button>
+              ` : `
+              <button class="dropdown-item" disabled style="opacity:.5;cursor:not-allowed">🔒 Edit (Admin only)</button>
+              <button class="dropdown-item" onclick="viewDetail(${a.id})">👁 Lihat Detail</button>
+              `}
+            </div>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+  updateCheckAllState();
+  renderPagination(totalPages, filtered.length);
+}
+
+function renderPagination(totalPages, total) {
+  const pg = document.getElementById('pagination');
+  if (total === 0) { pg.innerHTML = ''; return; }
+  let html = `<button class="page-btn${currentPage===1?' disabled':''}" onclick="goPage(${currentPage-1})">← Previous</button>`;
+  for (let i=1; i<=totalPages; i++) {
+    html += `<button class="page-btn${i===currentPage?' active':''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  html += `<button class="page-btn${currentPage===totalPages?' disabled':''}" onclick="goPage(${currentPage+1})">Next →</button>`;
+  pg.innerHTML = html;
+}
+
+function goPage(p) {
+  const filtered = getFiltered();
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  if (p < 1 || p > totalPages) return;
+  currentPage = p;
+  renderTable();
+}
+
+// ── SELECTION ─────────────────────────────────────────────────────────────────
+function toggleSelect(id, checked) {
+  if (checked) selectedIds.add(id); else selectedIds.delete(id);
+  const row = document.getElementById(`row-${id}`);
+  if (row) { row.classList.toggle('selected-row', checked); }
+  updateBulkBar();
+  updateCheckAllState();
+}
+
+function toggleSelectAll(checked) {
+  const filtered = getFiltered();
+  const pageData = filtered.slice((currentPage-1)*pageSize, currentPage*pageSize);
+  pageData.forEach(a => {
+    if (checked) selectedIds.add(a.id); else selectedIds.delete(a.id);
+  });
+  renderTable();
+  updateBulkBar();
+}
+
+function updateCheckAllState() {
+  const ca = document.getElementById('check-all');
+  if (!ca) return;
+  const filtered = getFiltered();
+  const pageData = filtered.slice((currentPage-1)*pageSize, currentPage*pageSize);
+  if (pageData.length === 0) { ca.checked = false; ca.indeterminate = false; return; }
+  const selCount = pageData.filter(a => selectedIds.has(a.id)).length;
+  ca.checked       = selCount === pageData.length;
+  ca.indeterminate = selCount > 0 && selCount < pageData.length;
+}
+
+function updateBulkBar() {
+  const bar   = document.getElementById('bulk-bar');
+  const count = selectedIds.size;
+  bar.classList.toggle('visible', count > 0);
+  document.getElementById('bulk-count').textContent = `${count} artikel dipilih`;
+}
+
+function clearSelection() {
+  selectedIds.clear();
+  updateBulkBar();
+  renderTable();
+}
+
+// ── BULK ACTIONS ──────────────────────────────────────────────────────────────
+function openBulkDeleteModal() {
+  if (!isAdmin()) { showToast('Hanya admin yang bisa menghapus.', 'error'); return; }
+  document.getElementById('bulk-delete-count').textContent = `${selectedIds.size} artikel`;
+  document.getElementById('bulk-delete-modal').classList.add('open');
+}
+function closeBulkDeleteModal() { document.getElementById('bulk-delete-modal').classList.remove('open'); }
+function confirmBulkDelete() {
+  const count = selectedIds.size;
+  articles = articles.filter(a => !selectedIds.has(a.id));
+  saveArticles();
+  closeBulkDeleteModal();
+  clearSelection();
+  currentPage = 1;
+  renderAll();
+  showToast(`${count} artikel berhasil dihapus.`, 'success');
+}
+
+// ── QUICK ACTIONS ─────────────────────────────────────────────────────────────
+function quickApprove(id) {
+  if (!isAdmin()) { showToast('Hanya admin yang bisa melakukan ini.', 'error'); return; }
+  const a = articles.find(x=>x.id===id);
+  a.approval = 'Approved';
+  saveArticles();
+  renderAll(); showToast(`"${a.title}" berhasil di-Approve`, 'success');
+}
+function viewDetail(id) {
+  const a = articles.find(x=>x.id===id);
+  showToast(`📄 ${a.title} — Approval: ${a.approval||'Belum'}, Task: ${a.task||'Belum'}`, 'info');
+}
+
+// ── ADD / EDIT MODAL ──────────────────────────────────────────────────────────
+function openAddModal() {
+  if (!isAdmin()) { showToast('Hanya admin yang bisa menambah artikel.', 'error'); return; }
+  document.getElementById('modal-title').textContent = 'Tambah Artikel Baru';
+  document.getElementById('edit-id').value = '';
+  ['f-title','f-url'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-category').value = '';
+  document.getElementById('f-project').value  = '';
+  document.getElementById('f-approval').value = '';
+  document.getElementById('f-task').value     = '';
+  document.getElementById('article-modal').classList.add('open');
+  setTimeout(() => document.getElementById('f-title').focus(), 100);
+}
+function openEditModal(id) {
+  if (!isAdmin()) { showToast('Hanya admin yang bisa mengedit artikel.', 'error'); return; }
+  const a = articles.find(x=>x.id===id);
+  if (!a) return;
+  document.getElementById('modal-title').textContent = 'Edit Artikel';
+  document.getElementById('edit-id').value    = id;
+  document.getElementById('f-title').value    = a.title;
+  document.getElementById('f-url').value      = a.url;
+  document.getElementById('f-category').value = a.category || '';
+  document.getElementById('f-project').value  = a.project || '';
+  document.getElementById('f-approval').value = a.approval;
+  document.getElementById('f-task').value     = a.task;
+  document.getElementById('article-modal').classList.add('open');
+  setTimeout(() => document.getElementById('f-title').focus(), 100);
+}
+function closeModal() { document.getElementById('article-modal').classList.remove('open'); }
+
+function saveArticle() {
+  if (!isAdmin()) { showToast('Akses ditolak.', 'error'); return; }
+  const title    = document.getElementById('f-title').value.trim();
+  const url      = document.getElementById('f-url').value.trim();
+  const category = document.getElementById('f-category').value;
+  const project  = document.getElementById('f-project').value;
+  const approval = document.getElementById('f-approval').value;
+  const task     = document.getElementById('f-task').value;
+  const editId   = document.getElementById('edit-id').value;
+  if (!title) { shakeInput('f-title'); showToast('Judul artikel wajib diisi.', 'error'); return; }
+  if (!url)   { shakeInput('f-url');   showToast('URL draft wajib diisi.', 'error'); return; }
+  if (!category) { shakeInput('f-category'); showToast('Kategori wajib dipilih.', 'error'); return; }
+  if (!project) { shakeInput('f-project'); showToast('Nama Project wajib dipilih.', 'error'); return; }
+  if (editId) {
+    const a = articles.find(x=>x.id===+editId);
+    if (a) Object.assign(a, {title, url, category, project, approval, task});
+    showToast(`"${title}" berhasil diperbarui`, 'success');
+  } else {
+    articles.push({ id: nextId++, title, url, category, project, approval, task });
+    showToast(`"${title}" berhasil ditambahkan`, 'success');
+  }
+  saveArticles();
+  closeModal(); currentPage = 1; renderAll();
+}
+
+// ── DELETE SINGLE ─────────────────────────────────────────────────────────────
+function openDeleteModal(id) {
+  if (!isAdmin()) { showToast('Hanya admin yang bisa menghapus.', 'error'); return; }
+  deleteTargetId = id;
+  const a = articles.find(x=>x.id===id);
+  document.getElementById('delete-name').textContent = `"${a.title}"`;
+  document.getElementById('delete-modal').classList.add('open');
+}
+function closeDeleteModal() { document.getElementById('delete-modal').classList.remove('open'); deleteTargetId = null; }
+function confirmDelete() {
+  const a = articles.find(x=>x.id===deleteTargetId);
+  articles = articles.filter(x=>x.id!==deleteTargetId);
+  saveArticles();
+  closeDeleteModal(); currentPage = 1; renderAll();
+  showToast(`"${a.title}" dihapus.`, 'success');
+}
+
+// ── PROJECT MANAGEMENT ────────────────────────────────────────────────────────
+const DEFAULT_PROJECTS = ['ZMivins', 'Ginza Dental', 'Siiri Geomancy', 'Entrust', 'UMW Equipment', 'OP Academy', 'Novena ENT', 'Astique Clinic', 'GFA Global', 'Comnet System', 'Cheap Website Designer', 'Crane Spares', 'East Ocean', 'Evermarch'];
+let customProjects = [];
+
+function loadCustomProjects() {
+  const stored = ;
+  customProjects = stored ? JSON.parse(stored) : [];
+  updateProjectDropdowns();
+}
+
+function saveCustomProjects() {
+  );
+}
+
+function updateProjectDropdowns() {
+  const allProjects = [...DEFAULT_PROJECTS, ...customProjects];
+  const selects = [document.getElementById('f-project')];
+  selects.forEach(select => {
+    const current = select.value;
+    const options = select.querySelectorAll('option');
+    options.forEach(opt => {
+      if (opt.textContent !== '— + Tambah Project Baru —' && !DEFAULT_PROJECTS.includes(opt.textContent)) opt.remove();
+    });
+    customProjects.forEach(proj => {
+      const opt = document.createElement('option');
+      opt.textContent = proj;
+      select.insertBefore(opt, select.querySelector('option[style*="color:#3b82f6"]'));
+    });
+    select.value = current;
+  });
+}
+
+function handleProjectChange() {
+  const select = document.getElementById('f-project');
+  if (select.value === '— + Tambah Project Baru —') {
+    select.value = '';
+    if (isAdmin()) openAddProjectModal();
+    else showToast('Hanya admin yang bisa menambah project.', 'error');
+  }
+}
+
+function openAddProjectModal() {
+  document.getElementById('new-project-name').value = '';
+  document.getElementById('add-project-modal').classList.add('open');
+  setTimeout(() => document.getElementById('new-project-name').focus(), 100);
+}
+
+function closeAddProjectModal() {
+  document.getElementById('add-project-modal').classList.remove('open');
+}
+
+function saveNewProject() {
+  const name = document.getElementById('new-project-name').value.trim();
+  if (!name) { showToast('Nama project tidak boleh kosong.', 'error'); return; }
+  if (DEFAULT_PROJECTS.includes(name)) { showToast('Project ini sudah ada di daftar default.', 'error'); return; }
+  if (customProjects.includes(name)) { showToast('Project ini sudah ditambahkan sebelumnya.', 'error'); return; }
+  customProjects.push(name);
+  customProjects.sort();
+  saveCustomProjects();
+  updateProjectDropdowns();
+  document.getElementById('f-project').value = name;
+  closeAddProjectModal();
+  showToast(`Project "${name}" berhasil ditambahkan!`, 'success');
+}
+
+// ── DROPDOWN ──────────────────────────────────────────────────────────────────
+function toggleDropdown(id) {
+  document.querySelectorAll('.dropdown-menu').forEach(d => { if (d.id !== `dd-${id}`) d.classList.remove('open'); });
+  document.getElementById(`dd-${id}`).classList.toggle('open');
+}
+document.addEventListener('click', e => { if (!e.target.closest('.action-wrap')) document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('open')); });
+
+// ── DOWNLOAD CSV ──────────────────────────────────────────────────────────────
+function downloadCSV(filter) {
+  let data;
+  const map = {
+    'Total':            articles,
+    'Approved':         articles.filter(a=>a.approval==='Approved'),
+    'Belum Approved':   articles.filter(a=>a.approval!=='Approved'),
+    'Task Dibuat':      articles.filter(a=>a.task==='Tugas Dibuat'),
+    'approved-no-task': articles.filter(a=>a.approval==='Approved' && a.task!=='Tugas Dibuat'),
+  };
+  data = map[filter] || articles;
+  if (!data.length) { showToast('Tidak ada data untuk didownload.', 'error'); return; }
+  const headers = ['Kategori','Nama Project','Judul Artikel','URL Draft','Approval','Task'];
+  const rows    = data.map(a=>[a.category, a.project, a.title, a.url, a.approval||'Belum Dibuat', a.task||'Belum Dibuat']);
+  const csv     = [headers,...rows].map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+  const link    = document.createElement('a');
+  link.href     = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'}));
+  link.download = `artikel-${filter.replace(/\s+/g,'-').toLowerCase()}.csv`;
+  link.click();
+  showToast('File CSV berhasil didownload!', 'success');
+}
+
+// ── TOAST / SHAKE ─────────────────────────────────────────────────────────────
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type + ' show';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+function shakeInput(id) {
+  const el = document.getElementById(id);
+  el.style.borderColor = '#ef4444'; el.style.animation = 'shake .3s';
+  setTimeout(() => { el.style.animation=''; el.style.borderColor=''; }, 400);
+}
+
+// ── VIEW MANAGEMENT ──────────────────────────────────────────────────────────
+let currentView = 'table';
+function switchView(view) {
+  currentView = view;
+  document.getElementById('table-view').style.display = view === 'table' ? 'block' : 'none';
+  document.getElementById('kanban-view').style.display = view === 'kanban' ? 'block' : 'none';
+  document.getElementById('view-table-btn').classList.toggle('active', view === 'table');
+  document.getElementById('view-kanban-btn').classList.toggle('active', view === 'kanban');
+  if (view === 'kanban') renderKanban();
+  else renderTable();
+}
+
+// ── KANBAN BOARD ──────────────────────────────────────────────────────────────
+function renderKanban() {
+  const filtered = getFiltered();
+  const columns = {
+    'Belum - To Do': { approval: '', task: '', articles: [] },
+    'Belum - In Progress': { approval: '', task: 'Tugas Dibuat', articles: [] },
+    'Approved - To Do': { approval: 'Approved', task: '', articles: [] },
+    'Approved - Done': { approval: 'Approved', task: 'Tugas Dibuat', articles: [] }
+  };
+  filtered.forEach(a => {
+    const key = (a.approval === 'Approved' ? 'Approved' : 'Belum') + ' - ' + (a.task === 'Tugas Dibuat' ? 'Done' : (a.task ? 'In Progress' : 'To Do'));
+    if (columns[key]) columns[key].articles.push(a);
+  });
+  let html = '';
+  Object.entries(columns).forEach(([colName, col]) => {
+    const icon = colName.includes('Belum') ? '📋' : '✅';
+    html += `
+    <div class="kanban-column" data-column="${colName}">
+      <div class="kanban-column-header">
+        <div class="kanban-column-title">${icon} ${colName}</div>
+        <div class="kanban-column-count">${col.articles.length} artikel</div>
+      </div>
+      <div class="kanban-column-body" ondrop="dropCard(event)" ondragover="dragOver(event)" ondragleave="dragLeave(event)">
+        ${col.articles.map(a => `
+          <div class="kanban-card" draggable="true" data-id="${a.id}" ondragstart="dragStart(event)" ondragend="dragEnd(event)">
+            <div class="kanban-card-title">${escHtml(a.title)}</div>
+            <div class="kanban-card-meta">${escHtml(a.project)}</div>
+            <div class="kanban-card-badges">
+              <span class="badge badge-${a.category === 'On Page' ? 'blue-outline' : 'orange-outline'}">${escHtml(a.category)}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  });
+  document.getElementById('kanban-board').innerHTML = html;
+}
+
+let draggedCard = null;
+function dragStart(e) {
+  draggedCard = e.target.closest('.kanban-card');
+  draggedCard.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function dragEnd(e) {
+  if (draggedCard) draggedCard.classList.remove('dragging');
+  document.querySelectorAll('.kanban-column-body.drag-over').forEach(col => col.classList.remove('drag-over'));
+}
+function dragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.target.closest('.kanban-column-body')?.classList.add('drag-over');
+}
+function dragLeave(e) {
+  if (!e.target.closest('.kanban-column-body')?.contains(e.relatedTarget)) {
+    e.target.closest('.kanban-column-body')?.classList.remove('drag-over');
+  }
+}
+function dropCard(e) {
+  e.preventDefault();
+  const col = e.target.closest('.kanban-column-body');
+  if (!col || !draggedCard) return;
+  col.classList.remove('drag-over');
+  const articleId = parseInt(draggedCard.dataset.id);
+  const article = articles.find(a => a.id === articleId);
+  const colName = col.closest('.kanban-column').dataset.column;
+
+  if (colName.includes('Belum')) article.approval = '';
+  else if (colName.includes('Approved')) article.approval = 'Approved';
+
+  if (colName.includes('To Do')) article.task = '';
+  else if (colName.includes('Done')) article.task = 'Tugas Dibuat';
+
+  col.appendChild(draggedCard);
+  renderAll();
+  showToast(`Status "${article.title}" diperbarui!`, 'success');
+}
+
+// ── BULK UPDATE ────────────────────────────────────────────────────────────────
+function openBulkUpdateModal() {
+  if (selectedIds.size === 0) { showToast('Pilih minimal satu artikel.', 'error'); return; }
+  document.getElementById('bulk-count-modal').textContent = selectedIds.size;
+  document.getElementById('bulk-update-modal').classList.add('open');
+}
+function closeBulkUpdateModal() {
+  document.getElementById('bulk-update-modal').classList.remove('open');
+  document.getElementById('bulk-approval-select').value = '';
+  document.getElementById('bulk-task-select').value = '';
+}
+function executeBulkUpdate() {
+  const approval = document.getElementById('bulk-approval-select').value;
+  const task = document.getElementById('bulk-task-select').value;
+  if ((approval === 'SKIP' || approval === '') && (task === 'SKIP' || task === '')) {
+    if (approval === 'SKIP' && task === 'SKIP') { showToast('Pilih minimal satu status untuk diperbarui.', 'error'); return; }
+  }
+  let count = 0;
+  selectedIds.forEach(id => {
+    const a = articles.find(x => x.id === id);
+    if (a) {
+      if (approval !== 'SKIP') { a.approval = approval; }
+      if (task !== 'SKIP') { a.task = task; }
+      count++;
+    }
+  });
+  saveArticles();
+  closeBulkUpdateModal();
+  clearSelection();
+  renderAll();
+  showToast(`${count} artikel berhasil diperbarui!`, 'success');
+}
+
+// ── KEYBOARD ─────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeDeleteModal(); closeBulkDeleteModal(); closeAddProjectModal(); closeBulkUpdateModal(); }
+  if (e.key === 'Enter') {
+    if (document.getElementById('login-screen').offsetParent !== null) { doLogin(); return; }
+    if (document.getElementById('article-modal').classList.contains('open') && document.activeElement.tagName !== 'SELECT') saveArticle();
+    if (document.getElementById('add-project-modal').classList.contains('open')) saveNewProject();
+  }
+});
+document.getElementById('article-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeModal(); });
+document.getElementById('delete-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeDeleteModal(); });
+document.getElementById('bulk-delete-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeBulkDeleteModal(); });
+document.getElementById('bulk-update-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeBulkUpdateModal(); });
+document.getElementById('add-project-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeAddProjectModal(); });
+document.getElementById('f-project').addEventListener('change', handleProjectChange);
+document.getElementById('new-project-name').addEventListener('keydown', e => { if (e.key==='Enter') saveNewProject(); });
+
+
+// ============ INIT with Supabase ============
+window.addEventListener('load', async () => {
   const saved = localStorage.getItem('currentUser');
   if (saved) {
     currentUser = JSON.parse(saved);
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('mainApp').style.display = '';
-    document.getElementById('roleBadge').textContent = currentUser.role === 'admin' ? '&#x1F451; Admin' : '&#x1F441; Viewer';
-    loadArticles();
-    setupRealtimeSubscription();
-  }
-});
-
-// Close dropdowns when clicking outside
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.action-btn') && !e.target.closest('.dropdown-menu')) {
-    document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open'));
+    loginScreen.classList.add('hidden');
+    document.querySelector('[role="main"]')?.style.display !== 'none' || Object.assign(loginScreen.parentElement.style, { display: '' });
+    await loadArticles();
+    setupRealtime();
   }
 });
 </script>
-
 </body>
 </html>
