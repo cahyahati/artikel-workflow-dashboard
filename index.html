@@ -1097,7 +1097,7 @@ function loadCustomProjects() {
 }
 
 function saveCustomProjects() {
-  );
+  localStorage.setItem('customProjects', JSON.stringify(customProjects));
 }
 
 function updateProjectDropdowns() {
