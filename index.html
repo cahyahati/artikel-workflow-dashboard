@@ -684,8 +684,10 @@ async function deleteArticle(id) {
 }
 
 // ============ SETUP REALTIME ============
+let realtimeChannel = null;
 function setupRealtime() {
-  const channel = supabase
+  if (realtimeChannel) return; // prevent duplicate subscriptions
+  realtimeChannel = supabase
     .channel('articles_changes')
     .on('postgres_changes', {
       event: '*',
@@ -1379,7 +1381,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { closeModal(); closeDeleteModal(); closeBulkDeleteModal(); closeAddProjectModal(); closeBulkUpdateModal(); }
   if (e.key === 'Enter') {
     if (document.getElementById('login-screen').offsetParent !== null) { doLogin(); return; }
-    if (document.getElementById('article-modal').classList.contains('open') && document.activeElement.tagName !== 'SELECT') saveArticle();
+    if (document.getElementById('article-modal').classList.contains('open') && document.activeElement.tagName !== 'SELECT') saveArticleForm();
     if (document.getElementById('add-project-modal').classList.contains('open')) saveNewProject();
   }
 });
@@ -1397,8 +1399,24 @@ window.addEventListener('load', async () => {
   const saved = localStorage.getItem('currentUser');
   if (saved) {
     currentUser = JSON.parse(saved);
+    const u = currentUser.username;
+    const record = USERS[u];
+
+    // Restore full app UI exactly like doLogin() does
     document.getElementById('login-screen').classList.add('hidden');
-    document.querySelector('[role="main"]')?.style.display !== 'none' || Object.assign(document.getElementById('login-screen').parentElement.style, { display: '' });
+    document.getElementById('app-header').style.display = 'flex';
+    document.getElementById('app-main').style.display = 'block';
+
+    if (record) {
+      const badge = document.getElementById('role-badge');
+      badge.textContent = record.role === 'admin' ? '👑 Admin' : '👁 Viewer';
+      badge.className = 'role-badge ' + record.role;
+      document.getElementById('user-label').textContent = record.label;
+      document.getElementById('user-avatar').textContent = u[0].toUpperCase();
+    }
+
+    applyRoleUI();
+    loadCustomProjects();
     await loadArticles();
     setupRealtime();
   }
