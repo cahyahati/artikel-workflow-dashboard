@@ -657,14 +657,16 @@ async function saveArticle(art) {
       if (error) throw error;
     } else {
       // INSERT
-      const { error } = await supabase
+      const { data: inserted, error } = await supabase
         .from('articles')
-        .insert([art]);
+        .insert([{ title: art.title, url: art.url, category: art.category, project: art.project, approval: art.approval, task: art.task }])
+        .select();
       if (error) throw error;
     }
-    loadArticles();
+    await loadArticles();
   } catch (err) {
     console.error('Save error:', err);
+    throw err;
   }
 }
 
@@ -732,6 +734,9 @@ function doLogin() {
   applyRoleUI();
   loadCustomProjects();
   renderAll();
+  loadArticles();
+  setupRealtime();
+  localStorage.setItem('currentUser', JSON.stringify(currentUser));
 }
 
 function doLogout() {
@@ -1000,24 +1005,43 @@ function openBulkDeleteModal() {
   document.getElementById('bulk-delete-modal').classList.add('open');
 }
 function closeBulkDeleteModal() { document.getElementById('bulk-delete-modal').classList.remove('open'); }
-function confirmBulkDelete() {
-  const count = selectedIds.size;
-  articles = articles.filter(a => !selectedIds.has(a.id));
-  saveArticles();
+async function confirmBulkDelete() {
+  const ids = [...selectedIds];
+  const count = ids.length;
   closeBulkDeleteModal();
   clearSelection();
-  currentPage = 1;
-  renderAll();
-  showToast(`${count} artikel berhasil dihapus.`, 'success');
+  try {
+    const { error } = await supabase
+      .from('articles')
+      .delete()
+      .in('id', ids);
+    if (error) throw error;
+    currentPage = 1;
+    await loadArticles();
+    showToast(`${count} artikel berhasil dihapus.`, 'success');
+  } catch (err) {
+    console.error('Bulk delete error:', err);
+    showToast('Gagal menghapus: ' + err.message, 'error');
+  }
 }
 
 // ── QUICK ACTIONS ─────────────────────────────────────────────────────────────
-function quickApprove(id) {
+async function quickApprove(id) {
   if (!isAdmin()) { showToast('Hanya admin yang bisa melakukan ini.', 'error'); return; }
   const a = articles.find(x=>x.id===id);
-  a.approval = 'Approved';
-  saveArticles();
-  renderAll(); showToast(`"${a.title}" berhasil di-Approve`, 'success');
+  if (!a) return;
+  try {
+    const { error } = await supabase
+      .from('articles')
+      .update({ approval: 'Approved', updated_at: new Date() })
+      .eq('id', id);
+    if (error) throw error;
+    await loadArticles();
+    showToast(`"${a.title}" berhasil di-Approve`, 'success');
+  } catch (err) {
+    console.error('Approve error:', err);
+    showToast('Gagal approve: ' + err.message, 'error');
+  }
 }
 function viewDetail(id) {
   const a = articles.find(x=>x.id===id);
@@ -1074,7 +1098,8 @@ async function saveArticleForm() {
     if (editId) art.id = +editId;
     await saveArticle(art);
     showToast(editId ? `"${title}" berhasil diperbarui` : `"${title}" berhasil ditambahkan`, 'success');
-    closeModal(); currentPage = 1; renderAll();
+    closeModal();
+    currentPage = 1;
   } catch (error) {
     console.error('Error saving article:', error);
     showToast('Error menyimpan artikel: ' + error.message, 'error');
@@ -1090,12 +1115,18 @@ function openDeleteModal(id) {
   document.getElementById('delete-modal').classList.add('open');
 }
 function closeDeleteModal() { document.getElementById('delete-modal').classList.remove('open'); deleteTargetId = null; }
-function confirmDelete() {
+async function confirmDelete() {
   const a = articles.find(x=>x.id===deleteTargetId);
-  articles = articles.filter(x=>x.id!==deleteTargetId);
-  saveArticles();
-  closeDeleteModal(); currentPage = 1; renderAll();
-  showToast(`"${a.title}" dihapus.`, 'success');
+  if (!a) { closeDeleteModal(); return; }
+  const titleCopy = a.title;
+  const idCopy = deleteTargetId;
+  closeDeleteModal();
+  try {
+    await deleteArticle(idCopy);
+    showToast(`"${titleCopy}" dihapus.`, 'success');
+  } catch (err) {
+    showToast('Gagal menghapus artikel: ' + err.message, 'error');
+  }
 }
 
 // ── PROJECT MANAGEMENT ────────────────────────────────────────────────────────
@@ -1275,7 +1306,7 @@ function dragLeave(e) {
     e.target.closest('.kanban-column-body')?.classList.remove('drag-over');
   }
 }
-function dropCard(e) {
+async function dropCard(e) {
   e.preventDefault();
   const col = e.target.closest('.kanban-column-body');
   if (!col || !draggedCard) return;
@@ -1283,16 +1314,26 @@ function dropCard(e) {
   const articleId = parseInt(draggedCard.dataset.id);
   const article = articles.find(a => a.id === articleId);
   const colName = col.closest('.kanban-column').dataset.column;
+  if (!article) return;
 
-  if (colName.includes('Belum')) article.approval = '';
-  else if (colName.includes('Approved')) article.approval = 'Approved';
+  const updates = { updated_at: new Date() };
+  if (colName.includes('Belum')) updates.approval = '';
+  else if (colName.includes('Approved')) updates.approval = 'Approved';
+  if (colName.includes('To Do')) updates.task = '';
+  else if (colName.includes('Done')) updates.task = 'Tugas Dibuat';
 
-  if (colName.includes('To Do')) article.task = '';
-  else if (colName.includes('Done')) article.task = 'Tugas Dibuat';
-
-  col.appendChild(draggedCard);
-  renderAll();
-  showToast(`Status "${article.title}" diperbarui!`, 'success');
+  try {
+    const { error } = await supabase
+      .from('articles')
+      .update(updates)
+      .eq('id', articleId);
+    if (error) throw error;
+    await loadArticles();
+    showToast(`Status "${article.title}" diperbarui!`, 'success');
+  } catch (err) {
+    console.error('Drag drop error:', err);
+    showToast('Gagal memperbarui status: ' + err.message, 'error');
+  }
 }
 
 // ── BULK UPDATE ────────────────────────────────────────────────────────────────
@@ -1306,26 +1347,31 @@ function closeBulkUpdateModal() {
   document.getElementById('bulk-approval-select').value = '';
   document.getElementById('bulk-task-select').value = '';
 }
-function executeBulkUpdate() {
+async function executeBulkUpdate() {
   const approval = document.getElementById('bulk-approval-select').value;
   const task = document.getElementById('bulk-task-select').value;
   if ((approval === 'SKIP' || approval === '') && (task === 'SKIP' || task === '')) {
     if (approval === 'SKIP' && task === 'SKIP') { showToast('Pilih minimal satu status untuk diperbarui.', 'error'); return; }
   }
-  let count = 0;
-  selectedIds.forEach(id => {
-    const a = articles.find(x => x.id === id);
-    if (a) {
-      if (approval !== 'SKIP') { a.approval = approval; }
-      if (task !== 'SKIP') { a.task = task; }
-      count++;
-    }
-  });
-  saveArticles();
+  const ids = [...selectedIds];
   closeBulkUpdateModal();
   clearSelection();
-  renderAll();
-  showToast(`${count} artikel berhasil diperbarui!`, 'success');
+  try {
+    const updates = {};
+    if (approval !== 'SKIP') updates.approval = approval;
+    if (task !== 'SKIP') updates.task = task;
+    updates.updated_at = new Date();
+    const { error } = await supabase
+      .from('articles')
+      .update(updates)
+      .in('id', ids);
+    if (error) throw error;
+    await loadArticles();
+    showToast(`${ids.length} artikel berhasil diperbarui!`, 'success');
+  } catch (err) {
+    console.error('Bulk update error:', err);
+    showToast('Gagal memperbarui: ' + err.message, 'error');
+  }
 }
 
 // ── KEYBOARD ─────────────────────────────────────────────────────────────────
@@ -1351,8 +1397,8 @@ window.addEventListener('load', async () => {
   const saved = localStorage.getItem('currentUser');
   if (saved) {
     currentUser = JSON.parse(saved);
-    loginScreen.classList.add('hidden');
-    document.querySelector('[role="main"]')?.style.display !== 'none' || Object.assign(loginScreen.parentElement.style, { display: '' });
+    document.getElementById('login-screen').classList.add('hidden');
+    document.querySelector('[role="main"]')?.style.display !== 'none' || Object.assign(document.getElementById('login-screen').parentElement.style, { display: '' });
     await loadArticles();
     setupRealtime();
   }
