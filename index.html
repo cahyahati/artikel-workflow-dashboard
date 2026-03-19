@@ -874,7 +874,7 @@ function updateCheckAllState() {
   const ca = document.getElementById('check-all');
   if (!ca) return;
   const filtered = getFiltered();
-  const pageData = filtered.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+  const pageData = filtered.slice((currentPage-1)*pageSize, currentPage*pageSize);
   if (pageData.length === 0) { ca.checked = false; ca.indeterminate = false; return; }
   const selCount = pageData.filter(a => selectedIds.has(a.id)).length;
   ca.checked       = selCount === pageData.length;
