@@ -630,7 +630,7 @@ async function loadArticles() {
       .order('id', { ascending: true });
 
     if (error) throw error;
-    articles = data || [];
+    articles = (data || []).map(a => ({ ...a, id: Number(a.id) }));
     nextId = articles.length > 0 ? Math.max(...articles.map(a => a.id || 0)) + 1 : 1;
     renderTable();
     updateStats();
