@@ -1044,7 +1044,7 @@ function openEditModal(id) {
 }
 function closeModal() { document.getElementById('article-modal').classList.remove('open'); }
 
-function saveArticle() {
+async function saveArticleForm() {
   if (!isAdmin()) { showToast('Akses ditolak.', 'error'); return; }
   const title    = document.getElementById('f-title').value.trim();
   const url      = document.getElementById('f-url').value.trim();
@@ -1053,20 +1053,22 @@ function saveArticle() {
   const approval = document.getElementById('f-approval').value;
   const task     = document.getElementById('f-task').value;
   const editId   = document.getElementById('edit-id').value;
+
   if (!title) { shakeInput('f-title'); showToast('Judul artikel wajib diisi.', 'error'); return; }
   if (!url)   { shakeInput('f-url');   showToast('URL draft wajib diisi.', 'error'); return; }
   if (!category) { shakeInput('f-category'); showToast('Kategori wajib dipilih.', 'error'); return; }
   if (!project) { shakeInput('f-project'); showToast('Nama Project wajib dipilih.', 'error'); return; }
-  if (editId) {
-    const a = articles.find(x=>x.id===+editId);
-    if (a) Object.assign(a, {title, url, category, project, approval, task});
-    showToast(`"${title}" berhasil diperbarui`, 'success');
-  } else {
-    articles.push({ id: nextId++, title, url, category, project, approval, task });
-    showToast(`"${title}" berhasil ditambahkan`, 'success');
+
+  try {
+    const art = { title, url, category, project, approval, task };
+    if (editId) art.id = +editId;
+    await saveArticle(art);
+    showToast(editId ? `"${title}" berhasil diperbarui` : `"${title}" berhasil ditambahkan`, 'success');
+    closeModal(); currentPage = 1; renderAll();
+  } catch (error) {
+    console.error('Error saving article:', error);
+    showToast('Error menyimpan artikel: ' + error.message, 'error');
   }
-  saveArticles();
-  closeModal(); currentPage = 1; renderAll();
 }
 
 // ── DELETE SINGLE ─────────────────────────────────────────────────────────────
