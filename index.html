@@ -84,7 +84,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .logout-btn:hover { background: #f9fafb; color: #374151; }
 
 /* ── MAIN ── */
-.main { padding: 28px 32px; max-width: 1280px; margin: 0 auto; }
+.main { padding: 28px 32px; max-width: 1600px; margin: 0 auto; }
 
 /* ── STAT CARDS ── */
 .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
@@ -182,7 +182,7 @@ tbody td.check-col { padding: 13px 12px 13px 20px; }
 input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: #3b82f6; border-radius: 4px; }
 
 .article-title { font-weight: 500; color: #111827; }
-.url-link { color: #3b82f6; text-decoration: none; font-size: 13px; }
+.url-link { color: #3b82f6; text-decoration: none; font-size: 13px; display: inline-block; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
 .url-link:hover { text-decoration: underline; }
 
 .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; white-space: nowrap; }
@@ -301,11 +301,6 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
       </div>
       <div class="login-error" id="login-error"></div>
       <button class="login-btn" onclick="doLogin()">Masuk →</button>
-    </div>
-    <div class="login-hint">
-      <strong>Demo credentials:</strong><br>
-      👑 Admin &nbsp;— user: <code>admin</code> &nbsp;/ pass: <code>admin123</code><br>
-      👁 Viewer — user: <code>viewer</code> / pass: <code>viewer123</code>
     </div>
   </div>
 </div>
@@ -973,7 +968,7 @@ function renderTable() {
         <td><span class="badge badge-${a.category === 'On Page' ? 'blue-outline' : 'orange-outline'}">${escHtml(a.category)}</span></td>
         <td>${escHtml(a.project)}</td>
         <td class="article-title">${escHtml(a.title)}</td>
-        <td><a class="url-link" href="https://${escHtml(a.url)}" target="_blank">${escHtml(a.url)}</a></td>
+        <td><a class="url-link" href="${ensureHttp(escHtml(a.url))}" target="_blank">${escHtml(a.url)}</a></td>
         <td>${approvalBadge(a.approval)}</td>
         <td>${taskBadge(a.task)}</td>
         <td style="white-space:nowrap;font-size:12px;color:#6b7280">${fmtDate(a.created_at)}</td>
