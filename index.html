@@ -431,6 +431,10 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
             <th style="cursor:pointer;user-select:none" onclick="toggleSort('url')">URL Draft <span id="sort-url"></span></th>
             <th style="cursor:pointer;user-select:none" onclick="toggleSort('approval')">Approval <span id="sort-approval"></span></th>
             <th style="cursor:pointer;user-select:none" onclick="toggleSort('task')">Task <span id="sort-task"></span></th>
+            <th style="cursor:pointer;user-select:none;white-space:nowrap" onclick="toggleSort('created_at')">Dibuat <span id="sort-created_at"></span></th>
+            <th style="cursor:pointer;user-select:none;white-space:nowrap" onclick="toggleSort('approved_at')">Tgl Approved <span id="sort-approved_at"></span></th>
+            <th style="cursor:pointer;user-select:none;white-space:nowrap" onclick="toggleSort('published_at')">Tgl Published <span id="sort-published_at"></span></th>
+            <th style="cursor:pointer;user-select:none" onclick="toggleSort('url_published')">URL Published <span id="sort-url_published"></span></th>
             <th></th>
           </tr>
         </thead>
@@ -546,6 +550,10 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
           </select>
         </div>
       </div>
+      <div class="form-group">
+        <label>URL Published</label>
+        <input class="form-input" id="f-url-published" placeholder="URL artikel setelah dipublikasikan (kosongkan jika belum)" />
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal()">Batal</button>
@@ -567,6 +575,24 @@ label { font-size: 13px; font-weight: 600; color: #374151; }
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeDeleteModal()">Batal</button>
       <button class="btn-danger" onclick="confirmDelete()">Hapus</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUDIT LOG MODAL -->
+<div class="modal-overlay" id="audit-log-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <span class="modal-title" id="audit-log-title">Riwayat Perubahan</span>
+      <button class="modal-close" onclick="closeAuditLogModal()">✕</button>
+    </div>
+    <div class="modal-body" style="max-height:400px;overflow-y:auto;padding:0">
+      <div id="audit-log-content" style="padding:16px">
+        <p style="color:#6b7280;font-size:13px;text-align:center">Memuat...</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeAuditLogModal()">Tutup</button>
     </div>
   </div>
 </div>
@@ -648,25 +674,47 @@ async function saveArticles() {
 
 async function saveArticle(art) {
   try {
-    if (art.id && articles.find(a => a.id === art.id)) {
+    const old = art.id ? articles.find(a => a.id === art.id) : null;
+    const fields = { title: art.title, url: art.url, category: art.category, project: art.project, approval: art.approval, task: art.task, url_published: art.url_published || '', updated_at: new Date() };
+    if (art.approved_at !== undefined) fields.approved_at = art.approved_at;
+    if (art.published_at !== undefined) fields.published_at = art.published_at;
+
+    let savedId = art.id;
+    if (art.id && old) {
       // UPDATE
-      const { error } = await supabase
-        .from('articles')
-        .update({ title: art.title, url: art.url, category: art.category, project: art.project, approval: art.approval, task: art.task, updated_at: new Date() })
-        .eq('id', art.id);
+      const { error } = await supabase.from('articles').update(fields).eq('id', art.id);
       if (error) throw error;
+      // Write audit logs for changes
+      const changes = [];
+      if (old.approval !== art.approval) changes.push(art.approval === 'Approved' ? 'Approval: Belum → Approved' : 'Approval: Approved → Belum');
+      if (old.task !== art.task) changes.push(art.task === 'Tugas Dibuat' ? 'Task: Belum → Tugas Dibuat' : 'Task: Tugas Dibuat → Belum');
+      if (old.url_published !== (art.url_published||'')) changes.push('URL Published diubah: ' + (art.url_published || '(dihapus)'));
+      if (old.title !== art.title) changes.push('Judul diubah');
+      if (old.category !== art.category) changes.push('Kategori: ' + old.category + ' → ' + art.category);
+      if (old.project !== art.project) changes.push('Project: ' + old.project + ' → ' + art.project);
+      if (changes.length > 0) await writeAuditLog(art.id, 'update', changes.join('; '));
     } else {
       // INSERT
-      const { data: inserted, error } = await supabase
-        .from('articles')
-        .insert([{ title: art.title, url: art.url, category: art.category, project: art.project, approval: art.approval, task: art.task }])
-        .select();
+      const { data: inserted, error } = await supabase.from('articles').insert([fields]).select();
       if (error) throw error;
+      if (inserted && inserted[0]) {
+        savedId = inserted[0].id;
+        await writeAuditLog(savedId, 'create', 'Artikel dibuat: ' + art.title);
+      }
     }
     await loadArticles();
   } catch (err) {
     console.error('Save error:', err);
     throw err;
+  }
+}
+
+async function writeAuditLog(articleId, action, details) {
+  try {
+    const changedBy = currentUser ? currentUser.username : 'unknown';
+    await supabase.from('audit_log').insert([{ article_id: articleId, action, changed_by: changedBy, details }]);
+  } catch (err) {
+    console.error('Audit log error:', err);
   }
 }
 
@@ -819,6 +867,10 @@ function sortArticles(data, column, direction) {
       case 'url': aVal = a.url; bVal = b.url; break;
       case 'approval': aVal = a.approval || ''; bVal = b.approval || ''; break;
       case 'task': aVal = a.task || ''; bVal = b.task || ''; break;
+      case 'created_at': aVal = a.created_at || ''; bVal = b.created_at || ''; break;
+      case 'approved_at': aVal = a.approved_at || ''; bVal = b.approved_at || ''; break;
+      case 'published_at': aVal = a.published_at || ''; bVal = b.published_at || ''; break;
+      case 'url_published': aVal = a.url_published || ''; bVal = b.url_published || ''; break;
       default: return 0;
     }
     if (aVal < bVal) return direction === 'asc' ? -1 : 1;
@@ -865,6 +917,16 @@ function taskBadge(v) {
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+function fmtDate(d) {
+  if (!d) return '<span class="dash-text">—</span>';
+  const dt = new Date(d);
+  if (isNaN(dt)) return '<span class="dash-text">—</span>';
+  return dt.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+}
+function ensureHttp(url) {
+  if (!url) return '';
+  return url.startsWith('http') ? url : 'https://' + url;
+}
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
 function renderAll() {
@@ -898,7 +960,7 @@ function renderTable() {
   const admin    = isAdmin();
 
   if (pageData.length === 0) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">Tidak ada artikel ditemukan.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="12">Tidak ada artikel ditemukan.</td></tr>`;
   } else {
     tbody.innerHTML = pageData.map(a => {
       const checked = selectedIds.has(a.id) ? 'checked' : '';
@@ -914,6 +976,10 @@ function renderTable() {
         <td><a class="url-link" href="https://${escHtml(a.url)}" target="_blank">${escHtml(a.url)}</a></td>
         <td>${approvalBadge(a.approval)}</td>
         <td>${taskBadge(a.task)}</td>
+        <td style="white-space:nowrap;font-size:12px;color:#6b7280">${fmtDate(a.created_at)}</td>
+        <td style="white-space:nowrap;font-size:12px;color:#6b7280">${fmtDate(a.approved_at)}</td>
+        <td style="white-space:nowrap;font-size:12px;color:#6b7280">${fmtDate(a.published_at)}</td>
+        <td>${a.url_published ? `<a class="url-link" href="${ensureHttp(escHtml(a.url_published))}" target="_blank">${escHtml(a.url_published)}</a>` : `<span class="dash-text">—</span>`}</td>
         <td>
           <div class="action-wrap">
             <button class="action-btn" onclick="toggleDropdown(${a.id})">⋯</button>
@@ -921,10 +987,11 @@ function renderTable() {
               ${admin ? `
               <button class="dropdown-item" onclick="openEditModal(${a.id})">✏️ Edit</button>
               <button class="dropdown-item" onclick="quickApprove(${a.id})">✅ Approve</button>
+              <button class="dropdown-item" onclick="openAuditLogModal(${a.id})">📋 Lihat Log</button>
               <button class="dropdown-item danger" onclick="openDeleteModal(${a.id})">🗑 Hapus</button>
               ` : `
-              <button class="dropdown-item" disabled style="opacity:.5;cursor:not-allowed">🔒 Edit (Admin only)</button>
               <button class="dropdown-item" onclick="viewDetail(${a.id})">👁 Lihat Detail</button>
+              <button class="dropdown-item" onclick="openAuditLogModal(${a.id})">📋 Lihat Log</button>
               `}
             </div>
           </div>
@@ -1033,9 +1100,10 @@ async function quickApprove(id) {
   try {
     const { error } = await supabase
       .from('articles')
-      .update({ approval: 'Approved', updated_at: new Date() })
+      .update({ approval: 'Approved', approved_at: new Date().toISOString(), updated_at: new Date() })
       .eq('id', id);
     if (error) throw error;
+    await writeAuditLog(id, 'approve', 'Approval: Belum → Approved');
     await loadArticles();
     showToast(`"${a.title}" berhasil di-Approve`, 'success');
   } catch (err) {
@@ -1048,12 +1116,56 @@ function viewDetail(id) {
   showToast(`📄 ${a.title} — Approval: ${a.approval||'Belum'}, Task: ${a.task||'Belum'}`, 'info');
 }
 
+async function openAuditLogModal(id) {
+  const a = articles.find(x=>x.id===id);
+  document.getElementById('audit-log-title').textContent = 'Riwayat: ' + (a ? a.title : '#' + id);
+  document.getElementById('audit-log-content').innerHTML = '<p style="color:#6b7280;font-size:13px;text-align:center">Memuat...</p>';
+  document.getElementById('audit-log-modal').classList.add('open');
+
+  try {
+    const { data, error } = await supabase
+      .from('audit_log')
+      .select('*')
+      .eq('article_id', id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    const container = document.getElementById('audit-log-content');
+    if (!data || data.length === 0) {
+      container.innerHTML = '<p style="color:#9ca3af;font-size:13px;text-align:center;padding:24px 0">Belum ada riwayat perubahan untuk artikel ini.</p>';
+      return;
+    }
+    container.innerHTML = data.map(log => {
+      const dt = new Date(log.created_at);
+      const dateStr = dt.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+      const timeStr = dt.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+      const actionLabel = { create:'Dibuat', update:'Diubah', approve:'Approved', bulk_update:'Bulk Update', delete:'Dihapus' }[log.action] || log.action;
+      const actionColor = { create:'#10b981', update:'#3b82f6', approve:'#10b981', bulk_update:'#8b5cf6', delete:'#ef4444' }[log.action] || '#6b7280';
+      return `
+        <div style="border-bottom:1px solid #f3f4f6;padding:12px 0;display:flex;gap:12px;align-items:flex-start">
+          <div style="min-width:56px;font-size:11px;color:#9ca3af;line-height:1.6;padding-top:2px">${dateStr}<br>${timeStr}</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span style="font-size:11px;font-weight:600;color:${actionColor};background:${actionColor}15;padding:2px 8px;border-radius:4px">${actionLabel}</span>
+              <span style="font-size:12px;color:#6b7280">oleh <strong style="color:#374151">${escHtml(log.changed_by)}</strong></span>
+            </div>
+            <div style="font-size:13px;color:#374151;line-height:1.5">${escHtml(log.details)}</div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (err) {
+    console.error('Load audit log error:', err);
+    document.getElementById('audit-log-content').innerHTML = '<p style="color:#ef4444;font-size:13px;text-align:center">Gagal memuat log: ' + escHtml(err.message) + '</p>';
+  }
+}
+function closeAuditLogModal() { document.getElementById('audit-log-modal').classList.remove('open'); }
+
 // ── ADD / EDIT MODAL ──────────────────────────────────────────────────────────
 function openAddModal() {
   if (!isAdmin()) { showToast('Hanya admin yang bisa menambah artikel.', 'error'); return; }
   document.getElementById('modal-title').textContent = 'Tambah Artikel Baru';
   document.getElementById('edit-id').value = '';
-  ['f-title','f-url'].forEach(id => document.getElementById(id).value = '');
+  ['f-title','f-url','f-url-published'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('f-category').value = '';
   document.getElementById('f-project').value  = '';
   document.getElementById('f-approval').value = '';
@@ -1073,6 +1185,7 @@ function openEditModal(id) {
   document.getElementById('f-project').value  = a.project || '';
   document.getElementById('f-approval').value = a.approval;
   document.getElementById('f-task').value     = a.task;
+  document.getElementById('f-url-published').value = a.url_published || '';
   document.getElementById('article-modal').classList.add('open');
   setTimeout(() => document.getElementById('f-title').focus(), 100);
 }
@@ -1080,13 +1193,14 @@ function closeModal() { document.getElementById('article-modal').classList.remov
 
 async function saveArticleForm() {
   if (!isAdmin()) { showToast('Akses ditolak.', 'error'); return; }
-  const title    = document.getElementById('f-title').value.trim();
-  const url      = document.getElementById('f-url').value.trim();
-  const category = document.getElementById('f-category').value;
-  const project  = document.getElementById('f-project').value;
-  const approval = document.getElementById('f-approval').value;
-  const task     = document.getElementById('f-task').value;
-  const editId   = document.getElementById('edit-id').value;
+  const title        = document.getElementById('f-title').value.trim();
+  const url          = document.getElementById('f-url').value.trim();
+  const category     = document.getElementById('f-category').value;
+  const project      = document.getElementById('f-project').value;
+  const approval     = document.getElementById('f-approval').value;
+  const task         = document.getElementById('f-task').value;
+  const url_published= document.getElementById('f-url-published').value.trim();
+  const editId       = document.getElementById('edit-id').value;
 
   if (!title) { shakeInput('f-title'); showToast('Judul artikel wajib diisi.', 'error'); return; }
   if (!url)   { shakeInput('f-url');   showToast('URL draft wajib diisi.', 'error'); return; }
@@ -1094,8 +1208,27 @@ async function saveArticleForm() {
   if (!project) { shakeInput('f-project'); showToast('Nama Project wajib dipilih.', 'error'); return; }
 
   try {
-    const art = { title, url, category, project, approval, task };
-    if (editId) art.id = +editId;
+    const art = { title, url, category, project, approval, task, url_published };
+
+    // Detect status changes for audit + auto-set dates
+    if (editId) {
+      art.id = +editId;
+      const old = articles.find(a => a.id === art.id);
+      if (old) {
+        if (old.approval !== approval) {
+          if (approval === 'Approved') art.approved_at = new Date().toISOString();
+          else art.approved_at = null;
+        }
+        if (old.url_published !== url_published && url_published) {
+          art.published_at = new Date().toISOString();
+        }
+      }
+    } else {
+      // New article
+      if (approval === 'Approved') art.approved_at = new Date().toISOString();
+      if (url_published) art.published_at = new Date().toISOString();
+    }
+
     await saveArticle(art);
     showToast(editId ? `"${title}" berhasil diperbarui` : `"${title}" berhasil ditambahkan`, 'success');
     closeModal();
@@ -1317,17 +1450,16 @@ async function dropCard(e) {
   if (!article) return;
 
   const updates = { updated_at: new Date() };
-  if (colName.includes('Belum')) updates.approval = '';
-  else if (colName.includes('Approved')) updates.approval = 'Approved';
-  if (colName.includes('To Do')) updates.task = '';
-  else if (colName.includes('Done')) updates.task = 'Tugas Dibuat';
+  const logParts = [];
+  if (colName.includes('Belum')) { updates.approval = ''; updates.approved_at = null; if (article.approval === 'Approved') logParts.push('Approval: Approved → Belum'); }
+  else if (colName.includes('Approved')) { updates.approval = 'Approved'; updates.approved_at = new Date().toISOString(); if (article.approval !== 'Approved') logParts.push('Approval: Belum → Approved'); }
+  if (colName.includes('To Do')) { updates.task = ''; if (article.task === 'Tugas Dibuat') logParts.push('Task: Tugas Dibuat → Belum'); }
+  else if (colName.includes('Done')) { updates.task = 'Tugas Dibuat'; if (article.task !== 'Tugas Dibuat') logParts.push('Task: Belum → Tugas Dibuat'); }
 
   try {
-    const { error } = await supabase
-      .from('articles')
-      .update(updates)
-      .eq('id', articleId);
+    const { error } = await supabase.from('articles').update(updates).eq('id', articleId);
     if (error) throw error;
+    if (logParts.length) await writeAuditLog(articleId, 'update', logParts.join('; '));
     await loadArticles();
     showToast(`Status "${article.title}" diperbarui!`, 'success');
   } catch (err) {
@@ -1358,14 +1490,20 @@ async function executeBulkUpdate() {
   clearSelection();
   try {
     const updates = {};
-    if (approval !== 'SKIP') updates.approval = approval;
+    if (approval !== 'SKIP') {
+      updates.approval = approval;
+      updates.approved_at = approval === 'Approved' ? new Date().toISOString() : null;
+    }
     if (task !== 'SKIP') updates.task = task;
     updates.updated_at = new Date();
-    const { error } = await supabase
-      .from('articles')
-      .update(updates)
-      .in('id', ids);
+    const { error } = await supabase.from('articles').update(updates).in('id', ids);
     if (error) throw error;
+    // Audit log for each article
+    const logParts = [];
+    if (approval !== 'SKIP') logParts.push('Approval → ' + (approval || 'Belum'));
+    if (task !== 'SKIP') logParts.push('Task → ' + (task || 'Belum'));
+    const detail = 'Bulk update: ' + logParts.join(', ');
+    for (const id of ids) { await writeAuditLog(id, 'bulk_update', detail); }
     await loadArticles();
     showToast(`${ids.length} artikel berhasil diperbarui!`, 'success');
   } catch (err) {
@@ -1376,7 +1514,7 @@ async function executeBulkUpdate() {
 
 // ── KEYBOARD ─────────────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModal(); closeDeleteModal(); closeBulkDeleteModal(); closeAddProjectModal(); closeBulkUpdateModal(); }
+  if (e.key === 'Escape') { closeModal(); closeDeleteModal(); closeBulkDeleteModal(); closeAddProjectModal(); closeBulkUpdateModal(); closeAuditLogModal(); }
   if (e.key === 'Enter') {
     if (document.getElementById('login-screen').offsetParent !== null) { doLogin(); return; }
     if (document.getElementById('article-modal').classList.contains('open') && document.activeElement.tagName !== 'SELECT') saveArticleForm();
@@ -1388,6 +1526,7 @@ document.getElementById('delete-modal').addEventListener('click', e => { if (e.t
 document.getElementById('bulk-delete-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeBulkDeleteModal(); });
 document.getElementById('bulk-update-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeBulkUpdateModal(); });
 document.getElementById('add-project-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeAddProjectModal(); });
+document.getElementById('audit-log-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeAuditLogModal(); });
 document.getElementById('f-project').addEventListener('change', handleProjectChange);
 document.getElementById('new-project-name').addEventListener('keydown', e => { if (e.key==='Enter') saveNewProject(); });
 
